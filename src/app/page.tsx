@@ -60,12 +60,13 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="flex flex-col items-center p-6 border rounded-lg hover:shadow-md transition-shadow">
               <Image
-                src="/globe.svg"
+                src="/globe.png"
                 alt="グローバル学習"
                 width={64}
                 height={64}
-                className="mb-4"
+                className="mb-4 w-auto"
               />
+
               <h3 className="text-xl font-semibold mb-2">
                 スマート学習システム
               </h3>
@@ -75,7 +76,7 @@ export default function Home() {
             </div>
             <div className="flex flex-col items-center p-6 border rounded-lg hover:shadow-md transition-shadow">
               <Image
-                src="/file.svg"
+                src="/file.png"
                 alt="進捗管理"
                 width={64}
                 height={64}
@@ -88,7 +89,7 @@ export default function Home() {
             </div>
             <div className="flex flex-col items-center p-6 border rounded-lg hover:shadow-md transition-shadow">
               <Image
-                src="/multi.svg"
+                src="/multi.png"
                 alt="クロスデバイス"
                 width={100}
                 height={100}
