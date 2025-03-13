@@ -5,9 +5,11 @@ import { redirect } from "next/navigation";
 
 const SIGNIN_ERROR_URL = "/auth/error";
 
-export default async function SignInPage(props: {
-  searchParams: { callbackUrl: string | undefined };
-}) {
+interface SignInPageProps {
+  searchParams: { callbackUrl?: string };
+}
+
+export default async function SignInPage({ searchParams }: SignInPageProps) {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen text-center">
       <Image
@@ -24,7 +26,7 @@ export default async function SignInPage(props: {
             "use server";
             try {
               await signIn(provider.id, {
-                redirectTo: props.searchParams?.callbackUrl ?? "",
+                redirectTo: searchParams?.callbackUrl ?? "",
               });
             } catch (error) {
               // Signin can fail for a number of reasons, such as the user
