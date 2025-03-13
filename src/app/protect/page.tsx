@@ -31,12 +31,19 @@
 // }
 "use server";
 import { db } from "@/db/dbclient";
-import { userTable } from "@/db/schema";
+import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 export default async function Page() {
   // const user = await db.select({ id: userTable.id }).from(userTable);
-  const user = await db.select().from(userTable).where(eq(userTable.id, 1));
+  const user = await db.select().from(users).where(eq(users.name, "linkalls"));
   console.log(user);
-  return <div></div>;
+  if (!user || user.length === 0) return <div>Not Found</div>;
+  return (
+    <div>
+      <p>{user[0].name!}</p>
+      <p> {user[0].email!}</p>
+      <p>{user[0].image!}</p>
+    </div>
+  );
 }

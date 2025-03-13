@@ -8,6 +8,13 @@
       "when": 1741844389755,
       "tag": "0000_round_zaran",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1741845511865,
+      "tag": "0001_curly_smiling_tiger",
+      "breakpoints": true
     }
   ]
 }
