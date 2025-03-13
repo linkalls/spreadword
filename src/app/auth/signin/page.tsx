@@ -25,6 +25,8 @@ export default function SignInPage() {
               await signIn(provider.id, {
                 redirectTo: "/dashboard",
               });
+              // Server action cannot use client-side hooks
+              // User state will be updated through session
             } catch (error) {
               // Signin can fail for a number of reasons, such as the user
               // not existing, or the user not having the correct role.

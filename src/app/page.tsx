@@ -109,6 +109,7 @@ export default function Home() {
       </section>
 
       {/* 登録促進セクション */}
+      
       <section className="py-16 px-6 bg-blue-50">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-4">今日から始めましょう</h2>
