@@ -101,7 +101,7 @@ export default function Header() {
                 </span>
               </div>
               <button
-                onClick={() => signOut()}
+                onClick={() => signOut({ redirectTo: "/" })}
                 className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm hover:shadow transition-all duration-200"
               >
                 ログアウト
