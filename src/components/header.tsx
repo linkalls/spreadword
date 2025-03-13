@@ -1,11 +1,11 @@
 "use client";
 
+import { userAtom } from "@/atoms/userAtom";
+import { useAtomValue } from "jotai";
 import { signIn, signOut } from "next-auth/react";
 import Img from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useAtomValue } from "jotai";
-import { userAtom } from "@/atoms/userAtom";
 
 export default function Header() {
   const user = useAtomValue(userAtom);
@@ -70,6 +70,14 @@ export default function Header() {
                 className="relative py-2 px-1 text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 before:content-[''] before:absolute before:-bottom-1 before:left-0 before:w-full before:h-0.5 before:bg-blue-600 before:origin-right before:scale-x-0 before:transition-transform hover:before:scale-x-100 hover:before:origin-left"
               >
                 お問い合わせ
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/blog"
+                className="relative py-2 px-1 text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 before:content-[''] before:absolute before:-bottom-1 before:left-0 before:w-full before:h-0.5 before:bg-blue-600 before:origin-right before:scale-x-0 before:transition-transform hover:before:scale-x-100 hover:before:origin-left"
+              >
+                ブログ
               </Link>
             </li>
           </ul>
