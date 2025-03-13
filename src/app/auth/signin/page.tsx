@@ -6,10 +6,11 @@ import { redirect } from "next/navigation";
 const SIGNIN_ERROR_URL = "/auth/error";
 
 interface SignInPageProps {
-  searchParams: Promise<{ callbackUrl?: string }> ; //* Promiseだってさ
+  searchParams: Promise<{ callbackUrl?: string }>;
 }
 
 export default async function SignInPage({ searchParams }: SignInPageProps) {
+  const params = await searchParams;
   return (
     <div className="flex flex-col items-center justify-center min-h-screen text-center">
       <Image
@@ -25,7 +26,6 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
           action={async () => {
             "use server";
             try {
-              const params = await searchParams;
               await signIn(provider.id, {
                 redirectTo: params?.callbackUrl ?? "",
               });
