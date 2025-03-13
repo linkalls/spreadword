@@ -1,10 +1,10 @@
 import Footer from "@/components/footer";
 import Image from "next/image";
 import Link from "next/link";
-import filePng from "/public/file.png";
-import globePng from "/public/globe.png";
-import multiPng from "/public/multi.png";
-import iconPng from "/public/icon.png";
+import filePng from "../../public/file.png";
+import globePng from "../../public/globe.png";
+import iconPng from "../../public/icon.png";
+import multiPng from "../../public/multi.png";
 
 export default function Home() {
   return (
