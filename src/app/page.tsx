@@ -1,6 +1,10 @@
 import Footer from "@/components/footer";
 import Image from "next/image";
 import Link from "next/link";
+import filePng from "@/public/file.png";
+import globePng from "@/public/globe.png";
+import multiPng from "@/public/multi.png";
+import iconPng from "@/public/icon.png";
 
 export default function Home() {
   return (
@@ -43,7 +47,7 @@ export default function Home() {
           </div>
           <div className="md:w-1/2">
             <Image
-              src="/icon.webp"
+              src={iconPng}
               alt="アプリデモ"
               width={500}
               height={400}
@@ -60,7 +64,7 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="flex flex-col items-center p-6 border rounded-lg hover:shadow-md transition-shadow">
               <Image
-                src="/globe.png"
+                src={globePng}
                 alt="グローバル学習"
                 width={64}
                 height={64}
@@ -76,7 +80,7 @@ export default function Home() {
             </div>
             <div className="flex flex-col items-center p-6 border rounded-lg hover:shadow-md transition-shadow">
               <Image
-                src="/file.png"
+                src={filePng}
                 alt="進捗管理"
                 width={64}
                 height={64}
@@ -89,7 +93,7 @@ export default function Home() {
             </div>
             <div className="flex flex-col items-center p-6 border rounded-lg hover:shadow-md transition-shadow">
               <Image
-                src="/multi.png"
+                src={multiPng}
                 alt="クロスデバイス"
                 width={100}
                 height={100}
