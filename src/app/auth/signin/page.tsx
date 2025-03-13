@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 const SIGNIN_ERROR_URL = "/auth/error";
 
 interface SignInPageProps {
-  searchParams: { callbackUrl?: string };
+  searchParams: Promise<{ callbackUrl?: string }> ; //* Promiseだってさ
 }
 
 export default async function SignInPage({ searchParams }: SignInPageProps) {
@@ -25,8 +25,9 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
           action={async () => {
             "use server";
             try {
+              const params = await searchParams;
               await signIn(provider.id, {
-                redirectTo: searchParams?.callbackUrl ?? "",
+                redirectTo: params?.callbackUrl ?? "",
               });
             } catch (error) {
               // Signin can fail for a number of reasons, such as the user
