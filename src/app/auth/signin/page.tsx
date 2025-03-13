@@ -2,14 +2,15 @@ import { providerMap, signIn } from "@/auth";
 import { AuthError } from "next-auth";
 import Image from "next/image";
 import { redirect } from "next/navigation";
+import iconPng from "../../../../public/icon.png";
 
 const SIGNIN_ERROR_URL = "/auth/error";
 
-export default  function SignInPage() {
+export default function SignInPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen text-center">
       <Image
-        src="/icon.webp"
+        src={iconPng}
         width={200}
         height={300}
         alt="logo"
