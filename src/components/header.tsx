@@ -1,12 +1,14 @@
 "use client";
 
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signIn, signOut } from "next-auth/react";
 import Img from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useAtomValue } from "jotai";
+import { userAtom } from "@/atoms/userAtom";
 
 export default function Header() {
-  const { data: session, status } = useSession();
+  const user = useAtomValue(userAtom);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -74,30 +76,33 @@ export default function Header() {
         </nav>
 
         <div className="flex items-center space-x-4">
-          {status === "loading" ? (
-            <div className="w-24 h-8 bg-gray-200 rounded-full animate-pulse"></div>
-          ) : session ? (
+          {!user ? (
+            <button
+              onClick={() => signIn()}
+              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
+            >
+              ログイン
+            </button>
+          ) : (
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2 bg-blue-50 rounded-full py-1 px-3 border border-blue-100">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white overflow-hidden">
-                  {session.user?.image ? (
+                  {user.image ? (
                     <Img
-                      src={session.user.image}
-                      alt={session.user.name || ""}
+                      src={user.image}
+                      alt={user.name}
                       className="w-full h-full object-cover"
                       width={32}
                       height={32}
                     />
                   ) : (
                     <span className="font-medium">
-                      {(session.user?.name ||
-                        session.user?.email ||
-                        "?")[0].toUpperCase()}
+                      {user.name[0].toUpperCase()}
                     </span>
                   )}
                 </div>
                 <span className="text-sm font-medium text-gray-700 hidden sm:inline-block">
-                  {session.user?.name || session.user?.email}
+                  {user.name}
                 </span>
               </div>
               <button
@@ -107,13 +112,6 @@ export default function Header() {
                 ログアウト
               </button>
             </div>
-          ) : (
-            <button
-              onClick={() => signIn()}
-              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
-            >
-              ログイン
-            </button>
           )}
 
           {/* モバイル用メニューボタン */}

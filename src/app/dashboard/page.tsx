@@ -1,19 +1,20 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { userAtom } from "@/atoms/userAtom";
+import { useAtomValue } from "jotai";
 
 export default function DashboardPage() {
-  const { data: session, status } = useSession();
+  const user = useAtomValue(userAtom);
 
-  if (status === "loading") {
-    return <p className="text-center">Loading...</p>;
+  if (!user) {
+    return <p className="text-center">ログインしていません</p>;
   }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen text-center">
       <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
-      <p>{status}</p>
-      <p> {session!.user!.name}</p>
+      <p>ようこそ {user.name} さん！</p>
+      <p>メールアドレス: {user.email}</p>
     </div>
   );
 }
