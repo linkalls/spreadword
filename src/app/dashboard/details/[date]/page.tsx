@@ -12,15 +12,16 @@ import { MistakeWordsStory } from '@/components/dashboard/mistake-words-story';
 export default async function DailyDetailsPage({
   params,
 }: {
-  params: { date: string };
+  params: Promise<{ date: string }>;
 }) {
   const session = await auth();
   if (!session?.user?.email) {
     redirect('/auth/signin');
   }
 
+  const { date } = await params;
   // パラメータの日付をYYYY-MM-DD形式に変換
-  const targetDate = new Date(params.date);
+  const targetDate = new Date(date);
   const formattedDate = targetDate.toISOString().split('T')[0];
 
   // その日に間違えた単語のリストを取得
@@ -44,7 +45,7 @@ export default async function DailyDetailsPage({
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">
-        {new Date(params.date).toLocaleDateString()} の学習記録
+        {new Date(date).toLocaleDateString()} の学習記録
       </h1>
       <MistakeWordsStory words={mistakeWords} />
     </div>
