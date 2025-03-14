@@ -80,6 +80,26 @@ export default function Header() {
                 ブログ
               </Link>
             </li>
+            {user && (
+              <>
+                <li>
+                  <Link
+                    href="/dashboard"
+                    className="relative py-2 px-1 text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 before:content-[''] before:absolute before:-bottom-1 before:left-0 before:w-full before:h-0.5 before:bg-blue-600 before:origin-right before:scale-x-0 before:transition-transform hover:before:scale-x-100 hover:before:origin-left"
+                  >
+                    ダッシュボード
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/quiz"
+                    className="relative py-2 px-1 text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 before:content-[''] before:absolute before:-bottom-1 before:left-0 before:w-full before:h-0.5 before:bg-blue-600 before:origin-right before:scale-x-0 before:transition-transform hover:before:scale-x-100 hover:before:origin-left"
+                  >
+                    単語クイズ
+                  </Link>
+                </li>
+              </>
+            )}
           </ul>
         </nav>
 
@@ -209,6 +229,28 @@ export default function Header() {
               お問い合わせ
             </Link>
           </li>
+          {user && (
+            <>
+              <li>
+                <Link
+                  href="/dashboard"
+                  className="block py-2 px-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  ダッシュボード
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/quiz"
+                  className="block py-2 px-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  単語クイズ
+                </Link>
+              </li>
+            </>
+          )}
         </ul>
       </div>
     </header>

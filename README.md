@@ -1,39 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SpreadWord プロジェクト
 
-## Getting Started
+## データベース構造の説明
 
-First, run the development server:
-```ts
-const user = useAtomValue(userAtom);
+### テーブル構造
+
+1. `users` テーブル
+   - ユーザー情報を管理
+   - 認証情報やプロフィール情報を保存
+
+2. `words` テーブル
+   - 学習する単語のデータを管理
+   - 単語、意味、品詞などの基本情報を保存
+
+3. `user_words` テーブル（中間テーブル）
+   - ユーザーと単語の関係を管理
+   - 各ユーザーの単語学習の進捗状況を追跡
+   - `complete` フラグでユーザーごとの単語の完了状態を管理
+
+### リレーションの説明
+
+```mermaid
+erDiagram
+    users ||--o{ user_words : "1人のユーザーは複数の単語を学習"
+    words ||--o{ user_words : "1つの単語は複数のユーザーが学習"
+    user_words {
+        string userId FK
+        integer wordId FK
+        boolean complete
+    }
 ```
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### 特徴
+- 多対多（Many-to-Many）の関係
+  - 1人のユーザーが複数の単語を学習できる
+  - 1つの単語を複数のユーザーが学習できる
+- ユーザーごとの進捗管理
+  - 同じ単語でも、ユーザーによって進捗状況（complete）が異なる
+  - 例：ユーザーAは"cat"を完了、ユーザーBは"cat"を未完了
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 技術スタック
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- データベース: SQLite
+- ORM: Drizzle
+- フレームワーク: Next.js
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 主な機能
 
-## Learn More
+### 1. ダッシュボード機能
+- ユーザーの学習進捗の可視化
+- 完了した単語数と総単語数の表示
+- 最近学習した単語のリスト
+- 学習統計情報の表示
 
-To learn more about Next.js, take a look at the following resources:
+### 2. 4択クイズ機能
+- ランダムな単語から4択問題を生成
+- 正解・不正解の即時フィードバック
+- 学習履歴の記録
+- 苦手な単語の優先出題
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 3. 単語学習機能
+- 単語リストの表示
+- 単語の完了状態の管理
+- 進捗状況の追跡
