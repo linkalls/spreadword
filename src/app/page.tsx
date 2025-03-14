@@ -7,6 +7,7 @@ import iconPng from "../../public/icon.png";
 import multiPng from "../../public/multi.png";
 
 export default function Home() {
+  
   return (
     <div className="flex flex-col min-h-screen">
       {/* ヘッダーセクション
