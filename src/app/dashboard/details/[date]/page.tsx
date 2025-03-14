@@ -1,81 +1,52 @@
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
-import PDFDownloadButton from "@/components/dashboard/pdf-download-button";
+import { auth } from '@/auth';
+import { redirect } from 'next/navigation';
+import { db } from '@/db/dbclient';
+import { and, eq, sql } from 'drizzle-orm';
+import { words as wordsTable, userWords as userWordsTable } from '@/db/schema';
+import { MistakeWordsStory } from '@/components/dashboard/mistake-words-story';
 
-interface IncorrectWord {
-  english: string;
-  japanese: string;
-  timestamp: Date;
-}
-
-async function getIncorrectWords(date: string, userId: string): Promise<IncorrectWord[]> {
-  const { getIncorrectWordsByDate } = await import("@/db/actions/dashboard");
-  return getIncorrectWordsByDate(userId, date);
-}
-
-export default async function DetailsPage({
+/**
+ * 指定された日付の間違えた単語一覧と、
+ * それらの単語を使用したストーリー生成機能を提供するページ
+ */
+export default async function DailyDetailsPage({
   params,
 }: {
-  params: Promise<{ date: string }>;
+  params: { date: string };
 }) {
-  const { date } = await params;
   const session = await auth();
-  if (!session?.user?.id) redirect("/auth/signin");
+  if (!session?.user?.email) {
+    redirect('/auth/signin');
+  }
 
-  // paramsを直接使用せず、分割代入した値を使用
-  const incorrectWords = await getIncorrectWords(date, session.user.id);
+  // パラメータの日付をYYYY-MM-DD形式に変換
+  const targetDate = new Date(params.date);
+  const formattedDate = targetDate.toISOString().split('T')[0];
 
-  const formattedDate = new Date(date).toLocaleDateString("ja-JP", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  // その日に間違えた単語のリストを取得
+  const mistakeWords = await db
+    .select({
+      word: wordsTable.word,
+      meanings: wordsTable.meanings,
+      mistakeCount: userWordsTable.mistakeCount,
+    })
+    .from(userWordsTable)
+    .innerJoin(wordsTable, eq(userWordsTable.wordId, wordsTable.id))
+    .where(
+      and(
+        eq(userWordsTable.userId, session.user.email),
+        sql`DATE(${userWordsTable.lastMistakeDate} / 1000, 'unixepoch') = ${formattedDate}`
+      )
+    )
+    .groupBy(wordsTable.word, wordsTable.meanings)
+    .execute();
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-2">
-        {formattedDate}の学習詳細
-        <span className="text-lg text-gray-500">Learning Details</span>
+      <h1 className="text-2xl font-bold mb-6">
+        {new Date(params.date).toLocaleDateString()} の学習記録
       </h1>
-
-      <div className="bg-white p-6 rounded-lg shadow-sm border">
-        <h2 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-          間違えた単語
-          <span className="text-sm text-gray-500">Incorrect Words</span>
-        </h2>
-
-        {incorrectWords.length > 0 ? (
-          <>
-            <div className="space-y-4">
-              {incorrectWords.map((word, index) => (
-                <div
-                  key={index}
-                  className="flex justify-between items-center py-2 border-b last:border-b-0"
-                >
-                  <div>
-                    <p className="font-medium">{word.english}</p>
-                    <p className="text-sm text-gray-500">{word.japanese}</p>
-                  </div>
-                  <p className="text-sm text-gray-500">
-                    {new Date(word.timestamp).toLocaleTimeString("ja-JP", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            <PDFDownloadButton
-              incorrectWords={incorrectWords}
-              formattedDate={formattedDate}
-              date={date}
-            />
-          </>
-        ) : (
-          <p className="text-gray-500">間違えた単語はありません。</p>
-        )}
-      </div>
+      <MistakeWordsStory words={mistakeWords} />
     </div>
   );
 }

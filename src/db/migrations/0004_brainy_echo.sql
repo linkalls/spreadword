@@ -1,1 +1,0 @@
-ALTER TABLE `word` DROP COLUMN `complete`;

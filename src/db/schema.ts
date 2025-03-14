@@ -133,6 +133,8 @@ export const userWords = sqliteTable(
       .notNull()
       .references(() => words.id, { onDelete: "cascade" }),
     complete: integer("complete", { mode: "boolean" }).default(false),
+    mistakeCount: integer("mistake_count").default(0),
+    lastMistakeDate: integer("last_mistake_date", { mode: "timestamp_ms" }),
   },
   (t) => ({
     pk: primaryKey({ columns: [t.userId, t.wordId] }),
@@ -208,6 +210,17 @@ export const quizResultsRelations = relations(quizResults, ({ one }) => ({
   }),
   word: one(words, {
     fields: [quizResults.wordId],
+    references: [words.id],
+  }),
+}));
+
+export const userWordsRelations = relations(userWords, ({ one }) => ({
+  user: one(users, {
+    fields: [userWords.userId],
+    references: [users.id],
+  }),
+  word: one(words, {
+    fields: [userWords.wordId],
     references: [words.id],
   }),
 }));

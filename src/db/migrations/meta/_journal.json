@@ -5,43 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1741844389755,
-      "tag": "0000_round_zaran",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1741845511865,
-      "tag": "0001_curly_smiling_tiger",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1741935354818,
-      "tag": "0002_icy_shriek",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1741935438877,
-      "tag": "0003_confused_paper_doll",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1741935597899,
-      "tag": "0004_brainy_echo",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "6",
-      "when": 1741937275577,
-      "tag": "0005_nice_millenium_guard",
+      "when": 1741970125930,
+      "tag": "0000_jittery_wild_pack",
       "breakpoints": true
     }
   ]
