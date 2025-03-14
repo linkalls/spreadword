@@ -1,9 +1,9 @@
-import { db } from '@/db/dbclient';
-import { words as wordsTable, userWords as userWordsTable } from '@/db/schema';
-import { redirect } from 'next/navigation';
-import { auth } from '@/auth';
-import { eq } from 'drizzle-orm';
-import { ClientWordDetail } from '@/components/word-detail/client-word-detail';
+import { auth } from "@/auth";
+import { ClientWordDetail } from "@/components/word-detail/client-word-detail";
+import { db } from "@/db/dbclient";
+import { words as wordsTable } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { redirect } from "next/navigation";
 
 /**
  * 単語詳細ページ
@@ -18,34 +18,35 @@ export default async function WordDetailPage({
   const { id } = await params;
   const session = await auth();
   if (!session?.user?.email) {
-    redirect('/auth/signin');
+    redirect("/auth/signin");
   }
 
   // 単語の詳細情報を取得
   const word = await db
     .select()
     .from(wordsTable)
-    .where(eq(wordsTable.id, parseInt(id)))
-    .execute();
+    .where(eq(wordsTable.id, parseInt(id)));
 
-  if (!word || word.length === 0) {
-    redirect('/words');
+  console.log(word);
+
+  if (!word) {
+    redirect("/words");
   }
 
-  // ユーザーの単語学習状況を取得
-  const userWord = await db
-    .select()
-    .from(userWordsTable)
-    .where(eq(userWordsTable.wordId, word[0].id))
-    .execute();
+  // ユーザーの単語学習状況を取得する意味はないな
+  // const userWord = await db
+  //   .select()
+  //   .from(userWordsTable)
+  //   .where(eq(userWordsTable.wordId, word[0].id))
+  //   .execute();
 
-  if (!userWord || userWord.length === 0) {
-    redirect('/words');
-  }
+  // if (!userWord || userWord.length === 0) {
+  //   redirect('/words');
+  // }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <ClientWordDetail 
+      <ClientWordDetail
         initialWord={{
           word: word[0].word,
           meanings: word[0].meanings,

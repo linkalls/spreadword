@@ -6,15 +6,24 @@ import { redirect } from "next/navigation";
 /**
  * 単語一覧・進捗管理ページ
  */
-export default async function WordsPage() {
+export default async function WordsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   // セッションチェック
   const session = await auth();
   if (!session?.user?.id) {
     redirect("/auth/signin");
   }
 
+  const {page} = await searchParams;
+
+  // 現在のページ番号を取得（デフォルトは1）
+  const currentPage = page ? parseInt(page) : 1;
+  
   // 単語一覧と進捗情報を取得
-  const words = await getUserWordProgress(session.user.id);
+  const { words, totalPages } = await getUserWordProgress(session.user.id, currentPage);
   const summary = await getUserProgressSummary(session.user.id);
 
   return (
@@ -31,9 +40,34 @@ export default async function WordsPage() {
             単語がまだ登録されていません
           </div>
         ) : (
-          words.map((word) => (
-            <WordProgress key={word.id} word={word} />
-          ))
+          <>
+            {words.map((word) => (
+              <WordProgress key={word.id} word={word} />
+            ))}
+            
+            {/* ページネーション */}
+            <div className="flex justify-center items-center space-x-2 mt-8">
+              {currentPage > 1 && (
+                <a
+                  href={`/words?page=${currentPage - 1}`}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                >
+                  前へ
+                </a>
+              )}
+              <span className="text-gray-600">
+                {currentPage} / {totalPages} ページ
+              </span>
+              {currentPage < totalPages && (
+                <a
+                  href={`/words?page=${currentPage + 1}`}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                >
+                  次へ
+                </a>
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>

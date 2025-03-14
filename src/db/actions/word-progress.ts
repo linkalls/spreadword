@@ -66,11 +66,28 @@ export async function updateWordProgress(
  * @returns 単語と進捗情報の配列
  */
 export async function getUserWordProgress(
-  userId: string
-): Promise<WordProgress[]> {
+  userId: string,
+  page: number = 1,
+  pageSize: number = 20
+): Promise<{
+  words: WordProgress[];
+  totalPages: number;
+  currentPage: number;
+}> {
   try {
-    // まずすべての単語を取得
-    const allWords = await db.select().from(words);
+    // まずすべての単語の総数を取得
+    const totalCount = await db.select().from(words).then(res => res.length);
+    
+    // ページネーションの計算
+    const totalPages = Math.ceil(totalCount / pageSize);
+    const offset = (page - 1) * pageSize;
+    
+    // 指定されたページの単語を取得
+    const allWords: Word[] = await db
+      .select()
+      .from(words)
+      .limit(pageSize)
+      .offset(offset);
     
     // ユーザーの進捗情報を取得
     const progress = await db
@@ -84,13 +101,23 @@ export async function getUserWordProgress(
     );
 
     // 単語と進捗情報を結合
-    return allWords.map(word => ({
+    const wordProgress: WordProgress[] = allWords.map(word => ({
       ...word,
       complete: progressMap.get(word.id) ?? false,
     }));
+
+    return {
+      words: wordProgress,
+      totalPages,
+      currentPage: page
+    };
   } catch (error) {
     console.error("Failed to get user word progress:", error);
-    return [];
+    return {
+      words: [],
+      totalPages: 0,
+      currentPage: 1
+    };
   }
 }
 
@@ -107,10 +134,22 @@ export async function getUserProgressSummary(
   percentage: number;
 }> {
   try {
-    const progress = await getUserWordProgress(userId);
-    const total = progress.length;
-    const completed = progress.filter(w => w.complete).length;
-    
+    // すべての単語の総数を取得
+    const allWords = await db.select().from(words);
+    const total = allWords.length;
+
+    // 完了した単語の数を取得
+    const completedWords = await db
+      .select()
+      .from(userWords)
+      .where(
+        and(
+          eq(userWords.userId, userId),
+          eq(userWords.complete, true)
+        )
+      );
+    const completed = completedWords.length;
+
     return {
       total,
       completed,

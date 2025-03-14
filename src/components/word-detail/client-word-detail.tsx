@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { WordDetailCard } from './word-detail-card';
+import { useState } from "react";
+import { WordDetailCard } from "./word-detail-card";
 
 interface ClientWordDetailProps {
   initialWord: {
@@ -26,25 +26,40 @@ export function ClientWordDetail({ initialWord }: ClientWordDetailProps) {
   const handleGenerateExample = async () => {
     try {
       setIsGenerating(true);
-      const response = await fetch('/api/examples/generate', {
-        method: 'POST',
+      const response = await fetch("/api/examples/generate", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           words: [initialWord.word],
+          prompt: `Please create a 2-line sentence using all of the following English words:
+          ${initialWord.word} - ${initialWord.meanings}
+          Conditions:
+            - Use all the provided words at least once.
+            - The sentences should have a story-like structure and be consistent in content.
+            - The theme should be related to daily life or business scenes.
+            - Use the words in a natural context.
+            - The sentences must be grammatically correct and easy to read for junior high school.
+            
+            - The translation should be in natural Japanese.
+            - Assume an English proficiency level suitable for university entrance exams.
+            - Output in the following JSON format:
+            {
+              "English": "Write the English sentences here (multiple paragraphs allowed)",
+              "Japanese": "Write the Japanese translation here (multiple paragraphs allowed)"
+            }`,
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to generate example');
-      }
-
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to generate example");
+      }
       setGeneratedText(data);
     } catch (error) {
-      console.error('Failed to generate example:', error);
-      // ここでエラー通知を表示することもできます
+      console.error("Failed to generate example:", error);
     } finally {
       setIsGenerating(false);
     }

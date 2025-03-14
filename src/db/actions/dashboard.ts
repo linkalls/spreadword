@@ -12,8 +12,8 @@ export const getUserLearningStats = async (userId: string) => {
   try {
     // 単語の進捗状況を取得
     const userWordsData = await getUserWordProgress(userId);
-    const totalWords = userWordsData.length;
-    const completedWords = userWordsData.filter((w: WordProgress) => w.complete).length;
+    const totalWords = userWordsData.words.length;
+    const completedWords = userWordsData.words.filter((w: WordProgress) => w.complete).length;
 
     // クイズの統計を取得
     const quizData = await db

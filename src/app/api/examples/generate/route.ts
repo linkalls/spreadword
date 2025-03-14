@@ -29,7 +29,7 @@ function createPrompt(words: string[]): string {
 
 export async function POST(request: Request) {
   try {
-    const { words } = await request.json();
+    const { words, prompt = null } = await request.json();
 
     if (!Array.isArray(words) || words.length === 0) {
       return NextResponse.json(
@@ -39,12 +39,20 @@ export async function POST(request: Request) {
     }
 
     // Gemini モデルの取得と設定
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     // プロンプトの生成と実行
+    let text;
+    if (prompt) {
+      console.log("Using custom prompt:", prompt);
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      text = response.text();
+    }else{
     const result = await model.generateContent(createPrompt(words));
     const response = await result.response;
-    const text = response.text();
+    text = response.text();
+    }
 
     try {
       // テキストからJSONを抽出して解析
@@ -53,15 +61,15 @@ export async function POST(request: Request) {
         throw new Error("JSON not found in response");
       }
       const data = JSON.parse(jsonMatch[0]);
-      
+
       // レスポンスの検証
       if (!data.English || !data.Japanese) {
         throw new Error("Invalid response format");
       }
-      
+
       return NextResponse.json({
         English: data.English.trim(),
-        Japanese: data.Japanese.trim()
+        Japanese: data.Japanese.trim(),
       });
     } catch (error) {
       console.error("Failed to parse Gemini response:", error);
