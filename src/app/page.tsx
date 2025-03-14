@@ -32,7 +32,7 @@ export default function Home() {
             </p>
             <div className="flex gap-4">
               <Link
-                href="/signup"
+                href="/auth/signin"
                 className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium"
               >
                 今すぐ始める
