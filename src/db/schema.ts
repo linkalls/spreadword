@@ -135,6 +135,7 @@ export const userWords = sqliteTable(
     complete: integer("complete", { mode: "boolean" }).default(false),
     mistakeCount: integer("mistake_count").default(0),
     lastMistakeDate: integer("last_mistake_date", { mode: "timestamp_ms" }),
+    notes: text("notes"),
   },
   (t) => ({
     pk: primaryKey({ columns: [t.userId, t.wordId] }),

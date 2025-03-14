@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import Link from "next/link";
 import { useState } from "react";
@@ -26,6 +26,8 @@ export function MobileMenu({ user }: MobileMenuProps) {
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
+            width={24}
+            height={24}
             xmlns="http://www.w3.org/2000/svg"
           >
             <path
@@ -41,6 +43,8 @@ export function MobileMenu({ user }: MobileMenuProps) {
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
+            width={24}
+            height={24}
             xmlns="http://www.w3.org/2000/svg"
           >
             <path
@@ -71,35 +75,66 @@ export function MobileMenu({ user }: MobileMenuProps) {
               ホーム
             </Link>
           </li>
-          <li>
-            <Link
-              href="/about"
-              className="block py-2 px-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              About
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/features"
-              className="block py-2 px-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              機能
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/contact"
-              className="block py-2 px-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              お問い合わせ
-            </Link>
-          </li>
+          {!user && (
+            <>
+              <li>
+                <Link
+                  href="/about"
+                  className="block py-2 px-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  About
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/features"
+                  className="block py-2 px-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  機能
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/contact"
+                  className="block py-2 px-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  お問い合わせ
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/blog"
+                  className="block py-2 px-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  ブログ
+                </Link>
+              </li>
+            </>
+          )}
           {user && (
             <>
+              <li>
+                <Link
+                  href="/words"
+                  className="block py-2 px-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  単語一覧
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/flashcards"
+                  className="block py-2 px-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  フラッシュカード
+                </Link>
+              </li>
               <li>
                 <Link
                   href="/dashboard"

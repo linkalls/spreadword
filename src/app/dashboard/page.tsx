@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { StatsCard } from "@/components/dashboard/stats-card";
+import { StudyProgressCards } from "@/components/dashboard/study-progress-cards";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
@@ -132,6 +133,16 @@ async function DashboardContent() {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+          学習の進捗
+          <span className="text-sm text-gray-500">
+            Study Progress
+          </span>
+        </h3>
+        <StudyProgressCards />
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-sm border">

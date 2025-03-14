@@ -42,40 +42,60 @@ export default async function Header() {
                 ホーム
               </Link>
             </li>
-            <li>
-              <Link
-                href="/about"
-                className="relative py-2 px-1 text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 before:content-[''] before:absolute before:-bottom-1 before:left-0 before:w-full before:h-0.5 before:bg-blue-600 before:origin-right before:scale-x-0 before:transition-transform hover:before:scale-x-100 hover:before:origin-left"
-              >
-                About
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/features"
-                className="relative py-2 px-1 text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 before:content-[''] before:absolute before:-bottom-1 before:left-0 before:w-full before:h-0.5 before:bg-blue-600 before:origin-right before:scale-x-0 before:transition-transform hover:before:scale-x-100 hover:before:origin-left"
-              >
-                機能
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/contact"
-                className="relative py-2 px-1 text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 before:content-[''] before:absolute before:-bottom-1 before:left-0 before:w-full before:h-0.5 before:bg-blue-600 before:origin-right before:scale-x-0 before:transition-transform hover:before:scale-x-100 hover:before:origin-left"
-              >
-                お問い合わせ
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/blog"
-                className="relative py-2 px-1 text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 before:content-[''] before:absolute before:-bottom-1 before:left-0 before:w-full before:h-0.5 before:bg-blue-600 before:origin-right before:scale-x-0 before:transition-transform hover:before:scale-x-100 hover:before:origin-left"
-              >
-                ブログ
-              </Link>
-            </li>
+            {!user && (
+              <>
+                <li>
+                  <Link
+                    href="/about"
+                    className="relative py-2 px-1 text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 before:content-[''] before:absolute before:-bottom-1 before:left-0 before:w-full before:h-0.5 before:bg-blue-600 before:origin-right before:scale-x-0 before:transition-transform hover:before:scale-x-100 hover:before:origin-left"
+                  >
+                    About
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/features"
+                    className="relative py-2 px-1 text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 before:content-[''] before:absolute before:-bottom-1 before:left-0 before:w-full before:h-0.5 before:bg-blue-600 before:origin-right before:scale-x-0 before:transition-transform hover:before:scale-x-100 hover:before:origin-left"
+                  >
+                    機能
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/contact"
+                    className="relative py-2 px-1 text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 before:content-[''] before:absolute before:-bottom-1 before:left-0 before:w-full before:h-0.5 before:bg-blue-600 before:origin-right before:scale-x-0 before:transition-transform hover:before:scale-x-100 hover:before:origin-left"
+                  >
+                    お問い合わせ
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/blog"
+                    className="relative py-2 px-1 text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 before:content-[''] before:absolute before:-bottom-1 before:left-0 before:w-full before:h-0.5 before:bg-blue-600 before:origin-right before:scale-x-0 before:transition-transform hover:before:scale-x-100 hover:before:origin-left"
+                  >
+                    ブログ
+                  </Link>
+                </li>
+              </>
+            )}
             {user && (
               <>
+                <li>
+                  <Link
+                    href="/words"
+                    className="relative py-2 px-1 text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 before:content-[''] before:absolute before:-bottom-1 before:left-0 before:w-full before:h-0.5 before:bg-blue-600 before:origin-right before:scale-x-0 before:transition-transform hover:before:scale-x-100 hover:before:origin-left"
+                  >
+                    単語一覧
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/flashcards"
+                    className="relative py-2 px-1 text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 before:content-[''] before:absolute before:-bottom-1 before:left-0 before:w-full before:h-0.5 before:bg-blue-600 before:origin-right before:scale-x-0 before:transition-transform hover:before:scale-x-100 hover:before:origin-left"
+                  >
+                    フラッシュカード
+                  </Link>
+                </li>
                 <li>
                   <Link
                     href="/dashboard"
