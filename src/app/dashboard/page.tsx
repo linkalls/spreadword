@@ -94,7 +94,9 @@ async function DashboardContent() {
           {/* 詳細ページへのリンク */}
           <a
             href={`/dashboard/details/${
-              new Date().toISOString().split("T")[0]
+              new Date()
+                .toLocaleString("sv-SE", { timeZone: "Asia/Tokyo" })
+                .split(" ")[0] //* 日本時間の日付を取得
             }`}
             className="text-sm text-blue-600 hover:text-blue-800 font-medium"
           >
