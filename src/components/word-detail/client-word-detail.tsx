@@ -41,7 +41,6 @@ export function ClientWordDetail({ initialWord }: ClientWordDetailProps) {
             - The theme should be related to daily life or business scenes.
             - Use the words in a natural context.
             - The sentences must be grammatically correct and easy to read for junior high school.
-            
             - The translation should be in natural Japanese.
             - Assume an English proficiency level suitable for university entrance exams.
             - Output in the following JSON format:

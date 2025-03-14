@@ -15,7 +15,8 @@ function createPrompt(words: string[]): string {
 条件:
 - 提供された単語を全て少なくとも1回は使用すること
 - 文章はストーリー性があり、一貫した内容にすること
-- 日常生活やビジネスシーンを題材にすること
+- 日常生活を題材にすること
+- The sentences must be grammatically correct and easy to read for junior high school.
 - 自然な文脈で単語を使用すること
 - 翻訳は自然な日本語にすること
 - 大学受験レベルの英語力を想定してください
