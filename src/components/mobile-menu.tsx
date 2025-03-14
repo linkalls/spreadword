@@ -15,14 +15,14 @@ export function MobileMenu({ user }: MobileMenuProps) {
     <>
       {/* モバイル用メニューボタン */}
       <button
-        className="md:hidden p-1 rounded-md hover:bg-gray-100 transition-colors"
+        className="md:hidden p-1.5 rounded-md hover:bg-gray-100 transition-colors"
         onClick={() => setIsMenuOpen(!isMenuOpen)}
         aria-expanded={isMenuOpen}
       >
         <span className="sr-only">メニュー</span>
         {isMenuOpen ? (
           <svg
-            className="w-6 h-6 text-gray-700"
+            className="w-7 h-7 text-gray-700"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -37,7 +37,7 @@ export function MobileMenu({ user }: MobileMenuProps) {
           </svg>
         ) : (
           <svg
-            className="w-6 h-6 text-gray-700"
+            className="w-7 h-7 text-gray-700"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -55,7 +55,7 @@ export function MobileMenu({ user }: MobileMenuProps) {
 
       {/* モバイルメニュー */}
       <div
-        className={`md:hidden px-4 pt-2 pb-4 bg-white/95 backdrop-blur-sm shadow-lg absolute w-full transform transition-all duration-300 ease-in-out ${
+        className={`md:hidden px-4 pt-2 pb-4 bg-white/95 backdrop-blur-sm shadow-lg absolute top-full right-0 w-full transform transition-all duration-300 ease-in-out ${
           isMenuOpen
             ? "opacity-100 translate-y-0"
             : "opacity-0 -translate-y-10 pointer-events-none"
