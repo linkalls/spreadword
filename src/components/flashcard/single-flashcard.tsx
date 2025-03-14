@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { RotateCw } from "lucide-react";
+import { RotateCw, Save } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 
 interface FlashCardData {
   id: number;
@@ -12,28 +12,27 @@ interface FlashCardData {
   meanings: string;
   part_of_speech: string | null;
   ex: string | null;
-  userNotes?: string;
+  notes?: string;
 }
 
 export default function SingleFlashCard({ wordId }: { wordId: number }) {
   const [isFlipped, setIsFlipped] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [card, setCard] = useState<FlashCardData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [userNote, setUserNote] = useState<string>("");
+  // const [userNote, setUserNote] = useState<string>("");
   const { data: session } = useSession();
   const [speaking, setSpeaking] = useState(false);
-
-
 
   useEffect(() => {
     const fetchCard = async () => {
       try {
         const response = await fetch(`/api/flashcards/${wordId}`);
-        if (!response.ok) throw new Error('Failed to fetch card');
+        if (!response.ok) throw new Error("Failed to fetch card");
         const data = await response.json();
         setCard(data);
       } catch (error) {
-        console.error('Error fetching flashcard:', error);
+        console.error("Error fetching flashcard:", error);
       } finally {
         setLoading(false);
       }
@@ -46,59 +45,59 @@ export default function SingleFlashCard({ wordId }: { wordId: number }) {
 
   const handleComplete = async () => {
     if (!card) return;
-    
+
     try {
-      const response = await fetch('/api/flashcards/complete', {
-        method: 'POST',
+      const response = await fetch("/api/flashcards/complete", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ wordId: card.id }),
       });
-      
-      if (!response.ok) throw new Error('Failed to update completion status');
-      
+
+      if (!response.ok) throw new Error("Failed to update completion status");
     } catch (error) {
-      console.error('Error completing card:', error);
+      console.error("Error completing card:", error);
     }
   };
 
   const handleSpeak = () => {
     if (!card || speaking) return;
-    
+
     const utterance = new SpeechSynthesisUtterance(card.word);
-    utterance.lang = 'en-US';
+    utterance.lang = "en-US";
     setSpeaking(true);
-    
+
     utterance.onend = () => {
       setSpeaking(false);
     };
-    
+
     speechSynthesis.speak(utterance);
   };
 
-  const saveNote = async () => {
-    if (!card || !userNote.trim()) return;
-    
+  const saveNote = async (userNote:string) => {
+    if (!card) return;
+
     try {
-      const response = await fetch('/api/flashcards/notes', {
-        method: 'POST',
+      setSaving(true);
+      const response = await fetch("/api/flashcards/notes", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           wordId: card.id,
-          note: userNote,
+          notes: userNote,
         }),
       });
-      
-      if (!response.ok) throw new Error('Failed to save note');
-      
+
+      if (!response.ok) throw new Error("Failed to save note");
     } catch (error) {
-      console.error('Error saving note:', error);
+      console.error("Error saving note:", error);
+    } finally {
+      setSaving(false);
     }
   };
-
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
@@ -123,6 +122,7 @@ export default function SingleFlashCard({ wordId }: { wordId: number }) {
     );
   }
 
+  console.log(card);
   return (
     <div className="max-w-2xl mx-auto">
       <div className="flex justify-end mb-4">
@@ -135,23 +135,21 @@ export default function SingleFlashCard({ wordId }: { wordId: number }) {
           >
             {speaking ? "再生中..." : "発音を聞く"}
           </Button>
-          <Button
-            variant="default"
-            size="sm"
-            onClick={handleComplete}
-          >
+          <Button variant="default" size="sm" onClick={handleComplete}>
             習得済みとしてマーク
           </Button>
         </div>
       </div>
-      
+
       <Card
         className={`w-full aspect-[3/2] flex items-center justify-center p-8 cursor-pointer transform transition-all duration-500 ${
           isFlipped ? "scale-[-1]" : ""
         }`}
         onClick={() => setIsFlipped(!isFlipped)}
       >
-        <div className={`text-center transform ${isFlipped ? "scale-[-1]" : ""}`}>
+        <div
+          className={`text-center transform ${isFlipped ? "scale-[-1]" : ""}`}
+        >
           {!isFlipped ? (
             <div>
               <h2 className="text-3xl font-bold mb-2">{card.word}</h2>
@@ -163,15 +161,28 @@ export default function SingleFlashCard({ wordId }: { wordId: number }) {
               {card.ex && (
                 <p className="text-sm text-gray-600 mt-4">{card.ex}</p>
               )}
-              <div className="mt-4 border-t pt-4" onClick={(e) => e.stopPropagation()}>
+              <div
+                className="mt-4 border-t pt-4"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <textarea
                   className="w-full p-2 border rounded-md"
                   placeholder="ノートを追加（例：覚え方のコツ、関連単語など）"
-                  value={userNote}
-                  onChange={(e) => setUserNote(e.target.value)}
-                  onBlur={saveNote}
+                  value={card.notes}
+                  onChange={(e) => setCard({ ...card, notes: e.target.value })}
+                  onBlur={(e) => saveNote(e.target.value)}
                   rows={2}
                 />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => saveNote(card.notes || "")}
+                  disabled={saving ||card.notes === card.notes || !card.notes}
+                  className="mt-2"
+                >
+                  <Save className="h-4 w-4 mr-1" />
+                  {saving ? "保存中..." : "ノートを保存"}
+                </Button>
               </div>
             </div>
           )}

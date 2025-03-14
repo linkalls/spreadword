@@ -1,38 +1,44 @@
-import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/db/dbclient";
 import { userWords } from "@/db/schema";
+import { and, eq } from "drizzle-orm";
+import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "認証が必要です" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
     }
 
-    const { wordId, note } = await request.json();
+    const { wordId, notes } = await request.json();
     if (!wordId) {
-      return NextResponse.json(
-        { error: "単語IDが必要です" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "単語IDが必要です" }, { status: 400 });
     }
 
-    // userWordsテーブルのレコードを更新または作成
-    await db
-      .insert(userWords)
-      .values({
-        userId: session.user.id,
+    const userId = session.user.id;
+
+    // 既存のレコードを確認
+    const existingRecord = await db
+      .select()
+      .from(userWords)
+      .where(and(eq(userWords.userId, userId), eq(userWords.wordId, wordId)))
+      .get();
+
+    if (existingRecord) {
+      // レコードが存在する場合はUPDATE
+      await db
+        .update(userWords)
+        .set({ notes })
+        .where(and(eq(userWords.userId, userId), eq(userWords.wordId, wordId)));
+    } else {
+      // レコードが存在しない場合はINSERT
+      await db.insert(userWords).values({
+        userId: userId,
         wordId: wordId,
-        notes: note,
-      })
-      .onConflictDoUpdate({
-        target: [userWords.userId, userWords.wordId],
-        set: { notes: note },
+        notes,
       });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
