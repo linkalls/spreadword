@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { WordSpeech } from './word-speech';
 
 // 単語の詳細情報の型定義
 interface WordDetail {
@@ -34,7 +35,10 @@ export const WordDetailCard: React.FC<WordDetailCardProps> = ({
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold">{wordDetail.word}</CardTitle>
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-2xl font-bold">{wordDetail.word}</CardTitle>
+          <WordSpeech word={wordDetail.word} />
+        </div>
         <p className="text-gray-600">{wordDetail.meaning}</p>
       </CardHeader>
       <CardContent>

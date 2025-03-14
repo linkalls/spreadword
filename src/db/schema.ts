@@ -12,6 +12,11 @@ import type { AdapterAccountType } from "next-auth/adapters";
 export type User = InferSelectModel<typeof users>;
 export type Word = InferSelectModel<typeof words>;
 export type UserWord = InferSelectModel<typeof userWords>;
+export type StudyGroup = InferSelectModel<typeof studyGroups>;
+export type GroupMember = InferSelectModel<typeof groupMembers>;
+export type Achievement = InferSelectModel<typeof achievements>;
+export type UserAchievement = InferSelectModel<typeof userAchievements>;
+export type RankingHistory = InferSelectModel<typeof rankingHistory>;
 
 // export const userTable = sqliteTable("users", {
 //   email: text("email").notNull(),
@@ -27,6 +32,89 @@ export const users = sqliteTable("user", {
   email: text("email").unique(),
   emailVerified: integer("emailVerified", { mode: "timestamp_ms" }),
   image: text("image"),
+  // フェーズ3: ゲーミフィケーション用のフィールド
+  level: integer("level").default(1),
+  experience: integer("experience").default(0),
+  dailyStreak: integer("daily_streak").default(0),
+  totalPoints: integer("total_points").default(0),
+  lastLoginDate: integer("last_login_date", { mode: "timestamp_ms" }),
+});
+
+// フェーズ3: スタディグループ
+export const studyGroups = sqliteTable("study_groups", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  name: text("name").notNull(),
+  description: text("description"),
+  level: text("level").notNull(), // "beginner" | "intermediate" | "advanced"
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  settings: text("settings").notNull(), // JSONBとして保存される設定
+});
+
+// フェーズ3: グループメンバーシップ
+export const groupMembers = sqliteTable(
+  "group_members",
+  {
+    groupId: text("group_id")
+      .notNull()
+      .references(() => studyGroups.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: text("role").notNull(), // "admin" | "moderator" | "member"
+    joinedAt: integer("joined_at", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.groupId, t.userId] }),
+  })
+);
+
+// フェーズ3: 実績システム
+export const achievements = sqliteTable("achievements", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  title: text("title").notNull(),
+  description: text("description"),
+  criteria: text("criteria").notNull(), // JSON形式で保存される達成条件
+  reward: text("reward").notNull(), // JSON形式で保存される報酬情報
+});
+
+// フェーズ3: ユーザー実績
+export const userAchievements = sqliteTable(
+  "user_achievements",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    achievementId: text("achievement_id")
+      .notNull()
+      .references(() => achievements.id, { onDelete: "cascade" }),
+    earnedAt: integer("earned_at", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.userId, t.achievementId] }),
+  })
+);
+
+// フェーズ3: ランキング履歴
+export const rankingHistory = sqliteTable("ranking_history", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  type: text("type").notNull(), // "global" | "group" | "weekly" | "monthly"
+  timeframe: text("timeframe"), // JSON形式で保存される期間情報
+  rankings: text("rankings").notNull(), // JSON形式で保存されるランキングデータ
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
 });
 
 export const accounts = sqliteTable(
@@ -185,6 +273,42 @@ export const usersRelations = relations(users, ({ many }) => ({
   words: many(userWords),
   learningHistory: many(learningHistory),
   quizResults: many(quizResults),
+  groupMemberships: many(groupMembers),
+  achievements: many(userAchievements),
+}));
+
+// スタディグループのリレーション
+export const studyGroupsRelations = relations(studyGroups, ({ many }) => ({
+  members: many(groupMembers),
+}));
+
+// グループメンバーのリレーション
+export const groupMembersRelations = relations(groupMembers, ({ one }) => ({
+  group: one(studyGroups, {
+    fields: [groupMembers.groupId],
+    references: [studyGroups.id],
+  }),
+  user: one(users, {
+    fields: [groupMembers.userId],
+    references: [users.id],
+  }),
+}));
+
+// 実績のリレーション
+export const achievementsRelations = relations(achievements, ({ many }) => ({
+  users: many(userAchievements),
+}));
+
+// ユーザー実績のリレーション
+export const userAchievementsRelations = relations(userAchievements, ({ one }) => ({
+  user: one(users, {
+    fields: [userAchievements.userId],
+    references: [users.id],
+  }),
+  achievement: one(achievements, {
+    fields: [userAchievements.achievementId],
+    references: [achievements.id],
+  }),
 }));
 
 export const wordsRelations = relations(words, ({ many }) => ({
