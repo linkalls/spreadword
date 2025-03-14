@@ -16,7 +16,7 @@ async function getIncorrectWords(date: string, userId: string): Promise<Incorrec
 export default async function DetailsPage({
   params,
 }: {
-  params: { date: string };
+  params: Promise<{ date: string }>;
 }) {
   const { date } = await params;
   const session = await auth();
