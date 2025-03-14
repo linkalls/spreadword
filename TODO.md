@@ -37,7 +37,7 @@
   ```
 - [ ] スペルチェックモード
 - [ ] 音声発音練習モード（Web Speech API 活用）
-- [ ] 間違えた単語の詳細学習機能
+- [x] 間違えた単語の詳細学習機能
   ```typescript
   interface MistakeAnalysis {
     word: string;
