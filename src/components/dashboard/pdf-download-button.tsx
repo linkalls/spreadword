@@ -1,5 +1,6 @@
 "use client";
 
+import { ReportData, ReportTemplate } from "@/types/pdf-report";
 import {
   Document,
   Font,
@@ -7,22 +8,28 @@ import {
   PDFDownloadLink,
   StyleSheet,
   Text,
-  View,
 } from "@react-pdf/renderer";
 import type { Style } from "@react-pdf/types";
 import { useEffect, useState } from "react";
-
-interface IncorrectWord {
-  english: string;
-  japanese: string;
-  timestamp: Date;
-}
+import { IncorrectWordsSection } from "./pdf-sections/incorrect-words-section";
+import { LearningTipsSection } from "./pdf-sections/learning-tips-section";
+import { StatisticsSection } from "./pdf-sections/statistics-section";
 
 interface PDFDownloadButtonProps {
-  incorrectWords: IncorrectWord[];
-  formattedDate: string;
-  date: string;
+  reportData: ReportData;
+  template?: ReportTemplate;
 }
+
+const defaultTemplate: ReportTemplate = {
+  layout: "detailed",
+  colorScheme: "light",
+  sections: [
+    { id: "header", title: "ヘッダー", enabled: true, order: 0 },
+    { id: "statistics", title: "学習統計", enabled: true, order: 1 },
+    { id: "incorrectWords", title: "間違えた単語", enabled: true, order: 2 },
+    { id: "learningTips", title: "学習アドバイス", enabled: true, order: 3 },
+  ],
+};
 
 Font.register({
   family: "NotoSansJP",
@@ -37,12 +44,51 @@ Font.register({
   ],
 });
 
-// スタイルの定義
+type ColorSchemeStyles = {
+  page: {
+    backgroundColor: string;
+    color: string;
+  };
+  primary: string;
+  secondary: string;
+};
+
+const getColorSchemeStyles = (
+  colorScheme: ReportTemplate["colorScheme"],
+  customColors?: ReportTemplate["customColors"]
+): ColorSchemeStyles => {
+  switch (colorScheme) {
+    case "dark":
+      return {
+        page: { backgroundColor: "#1a1a1a", color: "#ffffff" },
+        primary: "#60a5fa",
+        secondary: "#9ca3af",
+      };
+    case "custom":
+      if (!customColors) {
+        return getColorSchemeStyles("light");
+      }
+      return {
+        page: {
+          backgroundColor: customColors.background,
+          color: customColors.text,
+        },
+        primary: customColors.primary,
+        secondary: customColors.secondary,
+      };
+    default:
+      return {
+        page: { backgroundColor: "#ffffff", color: "#000000" },
+        primary: "#2563eb",
+        secondary: "#64748b",
+      };
+  }
+};
+
 const styles = StyleSheet.create<Record<string, Style>>({
   page: {
     fontFamily: "NotoSansJP",
     padding: 40,
-    backgroundColor: "#ffffff",
   },
   header: {
     fontSize: 24,
@@ -50,103 +96,79 @@ const styles = StyleSheet.create<Record<string, Style>>({
     textAlign: "center",
     paddingBottom: 10,
     borderBottomWidth: 2,
-    borderBottomColor: "#666666",
     borderBottomStyle: "solid",
-  },
-  tableContainer: {
-    marginTop: 20,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderStyle: "solid",
-  },
-  tableHeader: {
-    flexDirection: "row",
-    backgroundColor: "#2563eb",
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
-  },
-  tableHeaderCell: {
-    color: "#ffffff",
-    padding: 12,
-    fontSize: 14,
-    width: "50%",
-    borderRightWidth: 1,
-    borderRightColor: "#1e40af",
-    borderRightStyle: "solid",
-  },
-  tableRow: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e2e8f0",
-    borderBottomStyle: "solid",
-  },
-  tableCell: {
-    padding: 12,
-    fontSize: 12,
-    width: "50%",
-    borderRightWidth: 1,
-    borderRightColor: "#e2e8f0",
-    borderRightStyle: "solid",
-  },
-  japaneseText: {
-    color: "#dc2626",
-  },
-  evenRow: {
-    backgroundColor: "#f8fafc",
-  },
-  lastCell: {
-    borderRightWidth: 0,
   },
 });
 
 // PDFドキュメントコンポーネント
 const PDFDocument = ({
-  incorrectWords,
-  formattedDate,
+  reportData,
+  template = defaultTemplate,
 }: {
-  incorrectWords: IncorrectWord[];
-  formattedDate: string;
-}) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      <Text style={styles.header}>{formattedDate}の学習記録</Text>
-      <View style={styles.tableContainer}>
-        <View style={styles.tableHeader}>
-          <View style={styles.tableHeaderCell}>
-            <Text>English</Text>
-          </View>
-          <View style={[styles.tableHeaderCell, styles.lastCell]}>
-            <Text>日本語訳</Text>
-          </View>
-        </View>
-        {incorrectWords.map((word, index) => (
-          <View
-            key={index}
-            style={[
-              styles.tableRow,
-              index === incorrectWords.length - 1
-                ? { borderBottomWidth: 0 }
-                : {},
-            ]}
-          >
-            <View style={styles.tableCell}>
-              <Text>{word.english}</Text>
-            </View>
-            <View style={[styles.tableCell, styles.lastCell]}>
-              <Text style={styles.japaneseText}>{word.japanese}</Text>
-            </View>
-          </View>
-        ))}
-      </View>
-    </Page>
-  </Document>
-);
+  reportData: ReportData;
+  template?: ReportTemplate;
+}) => {
+  const colorScheme = getColorSchemeStyles(
+    template.colorScheme,
+    template.customColors
+  );
+  const pageStyles = {
+    ...styles.page,
+    ...colorScheme.page,
+  };
+
+  const enabledSections = template.sections
+    .filter((section) => section.enabled)
+    .sort((a, b) => a.order - b.order);
+
+  return (
+    <Document>
+      <Page size="A4" style={pageStyles}>
+        {enabledSections.map((section) => {
+          switch (section.id) {
+            case "header":
+              return (
+                <Text
+                  key={section.id}
+                  style={{
+                    ...styles.header,
+                    borderBottomColor: colorScheme.secondary,
+                    color: colorScheme.page.color,
+                  }}
+                >
+                  {reportData.formattedDate}の学習記録
+                </Text>
+              );
+            case "statistics":
+              return (
+                <StatisticsSection
+                  key={section.id}
+                  statistics={reportData.statistics}
+                />
+              );
+            case "incorrectWords":
+              return (
+                <IncorrectWordsSection
+                  key={section.id}
+                  incorrectWords={reportData.incorrectWords}
+                />
+              );
+            case "learningTips":
+              return (
+                <LearningTipsSection key={section.id} tips={reportData.tips} />
+              );
+            default:
+              return null;
+          }
+        })}
+      </Page>
+    </Document>
+  );
+};
 
 export default function PDFDownloadButton({
-  incorrectWords,
-  formattedDate,
-  date,
+  reportData,
+  template = defaultTemplate,
 }: PDFDownloadButtonProps) {
   const [isClient, setIsClient] = useState(false);
 
@@ -161,13 +183,8 @@ export default function PDFDownloadButton({
   return (
     <div className="mt-6">
       <PDFDownloadLink
-        document={
-          <PDFDocument
-            incorrectWords={incorrectWords}
-            formattedDate={formattedDate}
-          />
-        }
-        fileName={`incorrect-words-${date}.pdf`}
+        document={<PDFDocument reportData={reportData} template={template} />}
+        fileName={`learning-report-${reportData.date}.pdf`}
         className="block w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors text-center"
       >
         {({ loading }) => (loading ? "PDFを生成中..." : "PDFで出力")}
