@@ -1,30 +1,26 @@
 "use client";
 
-import { userAtom, loadingAtom } from "@/atoms/userAtom";
-import { useSetAtom } from "jotai";
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 
+/**
+ * セッション初期化コンポーネント
+ * NextAuthのセッション状態を監視します
+ */
 export function SessionInitializer() {
-  const { data: session, status } = useSession();
-  const setUser = useSetAtom(userAtom);
-  const setLoading = useSetAtom(loadingAtom);
+  const { data: session } = useSession();
 
   useEffect(() => {
-    // セッションの読み込み状態を設定
-    setLoading(status === "loading");
-
     if (session?.user) {
-      setUser({
-        id: session.user.id || "",
-        name: session.user.name || "",
-        email: session.user.email || "",
-        image: session.user.image || undefined,
+      // セッションがある場合のログ（デバッグ用）
+      console.debug("Session initialized", {
+        id: session.user.id,
+        name: session.user.name,
+        email: session.user.email,
       });
-    } else {
-      setUser(null);
     }
-  }, [session, setUser, status, setLoading]);
+  }, [session]);
 
+  // 何もレンダリングしない
   return null;
 }
