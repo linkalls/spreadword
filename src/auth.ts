@@ -19,7 +19,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   // providers: [GitHub],
   providers,
   adapter: DrizzleAdapter(db),
-  trustHost: true, // ← ここを追加！！
+  trustHost: true,
+  // cookies: {
+  //   sessionToken: {
+  //     name: `__Secure-next-auth.session-token`,
+  //     options: {
+  //       httpOnly: true,
+  //       sameSite: "lax",
+  //       path: "/",
+  //       secure: true,
+  //     },
+  //   },
+  // },
   pages: {
     signIn: "/auth/signin",
   },

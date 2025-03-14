@@ -20,7 +20,6 @@ export const metadata: Metadata = {
   description: "スプレッドワードアプリケーション",
 };
 
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,15 +27,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-          <SessionProvider>
-            <SessionInitializer />
-            <Header />
-            {children}
-          </SessionProvider>
-        </body>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <SessionProvider>
+          <SessionInitializer />
+          <Header />
+          {children}
+        </SessionProvider>
+      </body>
     </html>
   );
 }
