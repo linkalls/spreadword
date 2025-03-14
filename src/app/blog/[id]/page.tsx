@@ -2,14 +2,14 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { blogPosts } from "../blogList";
 
-type Props = {
-  params: { id: string };
-  searchParams: { [key: string]: string | string[] | undefined };
-};
-
 // 動的メタデータを生成するための関数
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const post = blogPosts.find((post) => post.id === params.id);
+export async function generateMetadata({ 
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const resolvedParams = await params;
+  const post = blogPosts.find((post) => post.id === resolvedParams.id);
 
   if (!post) {
     return {
@@ -23,8 +23,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function BlogPostPage({ params }: Props) {
-  const post = blogPosts.find((post) => post.id === params.id);
+export default async function BlogPostPage({ 
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const resolvedParams = await params;
+  const post = blogPosts.find((post) => post.id === resolvedParams.id);
 
   if (!post) {
     notFound();
