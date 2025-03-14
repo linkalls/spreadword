@@ -1,14 +1,33 @@
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { blogPosts } from "../blogList";
 
-export default async function BlogPostPage({
-  params,
-}: {
+type Props = {
   params: { id: string };
-}) {
+  searchParams: { [key: string]: string | string[] | undefined };
+};
+
+// 動的メタデータを生成するための関数
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = blogPosts.find((post) => post.id === params.id);
 
   if (!post) {
-    return <div>ブログ記事が見つかりませんでした</div>;
+    return {
+      title: "記事が見つかりません",
+    };
+  }
+
+  return {
+    title: post.title,
+    description: post.body.substring(0, 160),
+  };
+}
+
+export default function BlogPostPage({ params }: Props) {
+  const post = blogPosts.find((post) => post.id === params.id);
+
+  if (!post) {
+    notFound();
   }
 
   return (
