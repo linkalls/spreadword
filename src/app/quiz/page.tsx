@@ -1,8 +1,10 @@
 'use client';
 
 import { QuizCard } from "@/components/quiz/quiz-card";
+import { QuizLoading } from "@/components/quiz/quiz-loading";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 
 interface Word {
   id: number;
@@ -18,10 +20,18 @@ interface Choice {
 
 export default function QuizPage() {
   const router = useRouter();
+  const { status } = useSession();
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
   const [choices, setChoices] = useState<Choice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // セッションチェック
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/auth/signin");
+    }
+  }, [status, router]);
 
   // ランダムな単語を取得する関数
   const fetchRandomWord = async () => {
@@ -67,8 +77,10 @@ export default function QuizPage() {
   };
 
   useEffect(() => {
-    fetchRandomWord();
-  }, []);
+    if (status === "authenticated") {
+      fetchRandomWord();
+    }
+  }, [status]);
 
   // 回答処理
   const handleAnswer = async (
@@ -101,15 +113,8 @@ export default function QuizPage() {
   };
 
   // ローディング表示
-  if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
-          <p className="mt-4">問題を読み込んでいます...</p>
-        </div>
-      </div>
-    );
+  if (isLoading || status === "loading") {
+    return <QuizLoading />;
   }
 
   // エラー表示

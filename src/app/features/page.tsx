@@ -1,12 +1,10 @@
 "use client";
-import { loadingAtom, userAtom } from "@/atoms/userAtom";
-import { useAtomValue } from "jotai";
+import { useSession } from "next-auth/react";
 import { signIn } from "next-auth/react";
 
 export default function FeaturesPage() {
-  const isLoading = useAtomValue(loadingAtom);
-
-  const user = useAtomValue(userAtom);
+  const { data: session, status } = useSession();
+  const user = session?.user;
 
   const features = [
     {
@@ -20,17 +18,6 @@ export default function FeaturesPage() {
       description: "メッセージをリアルタイムで修正し、より自然な英会話を学ぶ。",
       icon: "🔄",
     },
-    // {
-    //   title: "グループチャット",
-    //   description:
-    //     "複数人でのグループチャットで、プロジェクトや趣味の話題を共有。",
-    //   icon: "👥",
-    // },
-    // {
-    //   title: "ファイル共有",
-    //   description: "画像や文書の共有もワンタッチで簡単に。",
-    //   icon: "📁",
-    // },
   ];
 
   return (
@@ -50,11 +37,8 @@ export default function FeaturesPage() {
           ))}
         </div>
       </div>
-      {isLoading ? (
-        <div className="mt-12 text-center">ユーザー情報を取得中....</div>
-      ) : (
-        <div className="mt-12 text-center">
-        {!user ? (
+      <div className="mt-12 text-center">
+        {status === "unauthenticated" ? (
           <div className="bg-blue-50 p-6 rounded-lg">
             <p className="text-lg mb-4">
               すべての機能を使うにはログインが必要です
@@ -66,15 +50,14 @@ export default function FeaturesPage() {
               ログインして始める
             </button>
           </div>
-        ) : (
+        ) : status === "authenticated" && user ? (
           <div className="bg-green-50 p-6 rounded-lg">
             <p className="text-lg text-green-800">
               {user.name}さん、すべての機能をご利用いただけます！
             </p>
           </div>
-        )}
+        ) : null}
       </div>
-      )}
     </div>
   );
 }

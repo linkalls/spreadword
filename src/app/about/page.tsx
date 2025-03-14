@@ -1,9 +1,9 @@
-"use client";
-import { userAtom } from "@/atoms/userAtom";
-import { useAtomValue } from "jotai";
+"use client"
+import { useSession } from "next-auth/react";
 
 export default function AboutPage() {
-  const user = useAtomValue(userAtom);
+  const { data: session } = useSession();
+  const user = session?.user;
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -30,18 +30,6 @@ export default function AboutPage() {
             私はより良い英単語学習ツールの開発に取り組んでいます。
           </p>
         </section>
-
-        {/* <section className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">ビジョン</h2>
-          <p className="text-gray-600">
-            言語や文化の壁を超えて、誰もが自由にコミュニケーションを取れる世界を作ります。
-            {!user && (
-              <span className="block mt-2 text-blue-600">
-                あなたもぜひ参加してください！
-              </span>
-            )}
-          </p>
-        </section> */}
       </div>
     </div>
   );

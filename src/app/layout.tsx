@@ -1,5 +1,4 @@
 import Header from "@/components/header";
-import { SessionInitializer } from "@/components/session-initializer";
 import type { Metadata } from "next";
 import { SessionProvider } from "next-auth/react";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -31,7 +30,6 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <SessionProvider>
-          <SessionInitializer />
           <Header />
           {children}
         </SessionProvider>

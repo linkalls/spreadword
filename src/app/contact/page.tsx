@@ -1,11 +1,11 @@
 "use client";
 
-import { userAtom } from "@/atoms/userAtom";
-import { useAtomValue } from "jotai";
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 
 export default function ContactPage() {
-  const user = useAtomValue(userAtom);
+  const { data: session } = useSession();
+  const user = session?.user;
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.name || "",

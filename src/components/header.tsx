@@ -1,14 +1,12 @@
 "use client";
 
-import { userAtom } from "@/atoms/userAtom";
-import { useAtomValue } from "jotai";
-import { signIn, signOut } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import Img from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export default function Header() {
-  const user = useAtomValue(userAtom);
+  const { data: session } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -21,6 +19,8 @@ export default function Header() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const user = session?.user;
 
   return (
     <header
@@ -118,14 +118,14 @@ export default function Header() {
                   {user.image ? (
                     <Img
                       src={user.image}
-                      alt={user.name}
+                      alt={user.name || ""}
                       className="w-full h-full object-cover"
                       width={32}
                       height={32}
                     />
                   ) : (
                     <span className="font-medium">
-                      {user.name[0].toUpperCase()}
+                      {user.name ? user.name[0].toUpperCase() : "U"}
                     </span>
                   )}
                 </div>
@@ -134,7 +134,7 @@ export default function Header() {
                 </span>
               </div>
               <button
-                onClick={() => signOut({ redirectTo: "/" })}
+                onClick={() => signOut({ callbackUrl: "/" })}
                 className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm hover:shadow transition-all duration-200"
               >
                 ログアウト
