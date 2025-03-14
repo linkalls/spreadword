@@ -5,8 +5,9 @@
 
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 interface WordProgressProps {
   word: {
@@ -56,34 +57,33 @@ export function WordProgress({ word }: WordProgressProps) {
 
   return (
     <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
-      <div className="flex-1">
-        <h3 className="text-lg font-medium">{word.word}</h3>
-        <p className="text-gray-600">{word.meanings}</p>
-        {word.part_of_speech && (
-          <span className="text-sm text-gray-500">{word.part_of_speech}</span>
-        )}
-      </div>
+      <Link href={`/words/${word.id}`} className="flex-1">
+        <div>
+          <h3 className="text-lg font-medium">{word.word}</h3>
+          <p className="text-gray-600">{word.meanings}</p>
+          {word.part_of_speech && (
+            <span className="text-sm text-gray-500">{word.part_of_speech}</span>
+          )}
+        </div>
+      </Link>
       <button
-        onClick={toggleComplete}
+        onClick={(e) => {
+          e.stopPropagation();
+          toggleComplete();
+        }}
         disabled={isUpdating}
         className={`
-          ml-4 px-4 py-2 rounded-full font-medium
-          ${
-            isComplete
-              ? "bg-green-100 text-green-700 hover:bg-green-200"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-          }
-          disabled:opacity-50 disabled:cursor-not-allowed
-          transition-colors
-        `}
+        ml-4 px-4 py-2 rounded-full font-medium
+        ${
+          isComplete
+            ? "bg-green-100 text-green-700 hover:bg-green-200"
+            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+        }
+        disabled:opacity-50 disabled:cursor-not-allowed
+        transition-colors
+      `}
       >
-        {isUpdating ? (
-          "更新中..."
-        ) : isComplete ? (
-          "✓ 完了"
-        ) : (
-          "未完了"
-        )}
+        {isUpdating ? "更新中..." : isComplete ? "✓ 完了" : "未完了"}
       </button>
     </div>
   );

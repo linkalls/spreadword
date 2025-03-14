@@ -27,8 +27,6 @@ export default async function WordDetailPage({
     .from(wordsTable)
     .where(eq(wordsTable.id, parseInt(id)));
 
-  console.log(word);
-
   if (!word) {
     redirect("/words");
   }
