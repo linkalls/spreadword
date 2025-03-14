@@ -1,7 +1,8 @@
 import { db } from "../dbclient";
-import { eq, desc, and, gte } from "drizzle-orm";
+import { eq, desc, and, gte, lt, sql } from "drizzle-orm";
 import { learningHistory, words, quizResults } from "../schema";
 import { getUserWordProgress, type WordProgress } from "./word-progress";
+
 
 /**
  * ユーザーの学習統計情報を取得する関数
@@ -129,6 +130,52 @@ export const getDailyStats = async (userId: string, days: number = 7) => {
     return dailyStats.reverse(); // 古い日付から新しい日付の順に並べる
   } catch (error) {
     console.error("Error getting daily stats:", error);
+    throw error;
+  }
+};
+
+/**
+ * 指定された日付の間違えた単語リストを取得する関数
+ * @param userId ユーザーID
+ * @param date 日付（YYYY-MM-DD形式）
+ */
+export const getIncorrectWordsByDate = async (userId: string, date: string) => {
+  try {
+    const startDate = new Date(date);
+    const endDate = new Date(date);
+    endDate.setDate(endDate.getDate() + 1);
+
+    const incorrectWords = await db
+      .select({
+        english: words.word,
+        japanese: words.meanings,
+        timestamp: learningHistory.timestamp,
+      })
+      .from(learningHistory)
+      .leftJoin(words, eq(learningHistory.wordId, words.id))
+      .where(
+        and(
+          eq(learningHistory.userId, userId),
+          eq(learningHistory.activityType, "quiz"),
+          eq(learningHistory.result, sql`0`), // false = incorrect
+          gte(learningHistory.timestamp, sql`${startDate.getTime()}`),
+          lt(learningHistory.timestamp, sql`${endDate.getTime()}`)
+        )
+      )
+      .orderBy(desc(learningHistory.timestamp));
+
+    // null値の除外と型の変換
+    return incorrectWords
+      .filter((word): word is { english: string; japanese: string; timestamp: Date } => 
+        word.english !== null && word.japanese !== null
+      )
+      .map(word => ({
+        english: word.english,
+        japanese: word.japanese,
+        timestamp: word.timestamp
+      }));
+  } catch (error) {
+    console.error("Error getting incorrect words by date:", error);
     throw error;
   }
 };

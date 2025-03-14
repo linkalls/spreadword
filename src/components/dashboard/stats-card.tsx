@@ -5,9 +5,11 @@ interface StatsCardProps {
   value: number;
   unit?: string;
   description?: string;
+  // 詳細ページへのリンク用
+  detailsLink?: string;
 }
 
-export function StatsCard({ title, value, unit, description }: StatsCardProps) {
+export function StatsCard({ title, value, unit, description, detailsLink }: StatsCardProps) {
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border">
       <h3 className="text-sm font-medium text-gray-500">{title}</h3>
@@ -19,6 +21,16 @@ export function StatsCard({ title, value, unit, description }: StatsCardProps) {
       </div>
       {description && (
         <p className="mt-2 text-sm text-gray-500">{description}</p>
+      )}
+      {detailsLink && (
+        <div className="mt-4">
+          <a
+            href={detailsLink}
+            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+          >
+            詳細を見る →
+          </a>
+        </div>
       )}
     </div>
   );
