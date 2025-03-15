@@ -1,12 +1,16 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import { UserManagementClient } from "./user-management-client"
+import { isAdmin } from "@/app/admin/adminRoleFetch";
+
 
 export default async function UsersPage() {
   const session = await auth()
+
+const adminRole = await isAdmin(session!);
   
   // 認証されていない、またはadmin権限がない場合はリダイレクト
-  if (!session?.user || session.user.role !== "admin") {
+  if (!session?.user || !adminRole) {
     redirect("/")
   }
 

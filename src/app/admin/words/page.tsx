@@ -1,14 +1,14 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import WordManagementClient from "@/components/admin/word-management-client"
+import { isAdmin } from "@/app/admin/adminRoleFetch";
 
-// 単語管理ページのメインコンポーネント
 export default async function WordsPage() {
-  // セッション情報を取得
   const session = await auth()
+  const adminRole = await isAdmin(session!);
   
   // 認証されていない、またはadmin権限がない場合はリダイレクト
-  if (!session?.user || session.user.role !== "admin") {
+  if (!session?.user || !adminRole) {
     redirect("/")
   }
 

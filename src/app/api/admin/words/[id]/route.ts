@@ -1,65 +1,79 @@
-import { auth } from "@/auth";
 import { db } from "@/db/dbclient";
 import { words } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import { auth } from "@/auth";
+import { isAdmin } from "@/app/admin/adminRoleFetch";
 
-// 入力バリデーション用のスキーマ
-const wordSchema = z.object({
-  word: z.string().min(1),
-  meanings: z.string().min(1),
-  part_of_speech: z.string().optional(),
-  choices: z.string().optional(),
-  ex: z.string().optional(),
-});
-
-// PUTリクエスト（単語更新）
+// 単語を更新
 export async function PUT(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  req: Request,
+  { params }: { params: { id: string } }
 ) {
+  const session = await auth();
+  const adminRole = await isAdmin(session!);
+
+  if (!session?.user || !adminRole) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+
   try {
-    const session = await auth();
-    if (!session?.user || session.user.role !== "admin") {
-      return new NextResponse("Unauthorized", { status: 401 });
+    const body = await req.json();
+    const { word, meanings, part_of_speech, choices, ex } = body;
+    const id = parseInt(params.id);
+
+    // 必須フィールドの検証
+    if (!word || !meanings) {
+      return new NextResponse("Word and meanings are required", { status: 400 });
     }
 
-    const body = await request.json();
-    const validatedData = wordSchema.parse(body);
-
-    const {id} = await params
-
-    await db
+    const updatedWord = await db
       .update(words)
-      .set(validatedData)
-      .where(eq(words.id, parseInt(id)));
+      .set({
+        word,
+        meanings,
+        part_of_speech,
+        choices,
+        ex,
+      })
+      .where(eq(words.id, id))
+      .returning();
 
-    return NextResponse.json({ message: "Word updated successfully" });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return new NextResponse("Invalid input", { status: 400 });
+    if (updatedWord.length === 0) {
+      return new NextResponse("Word not found", { status: 404 });
     }
+
+    return NextResponse.json(updatedWord[0]);
+  } catch (error) {
     console.error("Error updating word:", error);
     return new NextResponse("Internal Server Error", { status: 500 });
   }
 }
 
-// DELETEリクエスト（単語削除）
+// 単語を削除
 export async function DELETE(
-  request: Request,
-  { params }: { params: Promise<{ id: string } >}
+  req: Request,
+  { params }: { params: { id: string } }
 ) {
+  const session = await auth();
+  const adminRole = await isAdmin(session!);
+
+  if (!session?.user || !adminRole) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+
   try {
-    const session = await auth();
-    if (!session?.user || session.user.role !== "admin") {
-      return new NextResponse("Unauthorized", { status: 401 });
+    const id = parseInt(params.id);
+    const deletedWord = await db
+      .delete(words)
+      .where(eq(words.id, id))
+      .returning();
+
+    if (deletedWord.length === 0) {
+      return new NextResponse("Word not found", { status: 404 });
     }
 
-    const {id} = await params
-    await db.delete(words).where(eq(words.id, parseInt(id)));
-
-    return NextResponse.json({ message: "Word deleted successfully" });
+    return NextResponse.json(deletedWord[0]);
   } catch (error) {
     console.error("Error deleting word:", error);
     return new NextResponse("Internal Server Error", { status: 500 });

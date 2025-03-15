@@ -1,7 +1,5 @@
+import { isAdmin } from "@/app/admin/adminRoleFetch";
 import { auth } from "@/auth";
-import { db } from "@/db/dbclient";
-import { UserRoleEnum, userRoles } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
 import { redirect } from "next/navigation";
 
 // adminページのメインコンポーネント
@@ -23,15 +21,7 @@ export default async function AdminPage() {
   //     role: "admin",
   //   },
   // });
-  const adminRole = await db
-    .select()
-    .from(userRoles)
-    .where(
-      and(
-        eq(userRoles.userId, session!.user!.id!),
-        eq(userRoles.role, UserRoleEnum.admin)
-      )
-    );
+  const adminRole = await isAdmin(session);
   if (!adminRole) {
     redirect("/auth/signin");
   }
