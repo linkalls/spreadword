@@ -220,10 +220,11 @@ export const userWords = sqliteTable(
     wordId: integer("wordId")
       .notNull()
       .references(() => words.id, { onDelete: "cascade" }),
-    complete: integer("complete", { mode: "boolean" }).default(false),
-    mistakeCount: integer("mistake_count").default(0),
-    lastMistakeDate: integer("last_mistake_date", { mode: "timestamp_ms" }),
-    notes: text("notes"),
+    complete: integer("complete").default(0),        // 単語を習得済みかどうか（-3以下で1）
+    mistakeCount: integer("mistake_count").default(0), // クイズの進捗（3回連続正解で習得）
+    lastMistakeDate: text("last_mistake_date").default(""), // YYYY-MM-DD形式
+    bookmarked: integer("bookmarked").default(0),    // ブックマークしているかどうか
+    notes: text("notes"),                            // 単語に対するメモ
   },
   (t) => ({
     pk: primaryKey({ columns: [t.userId, t.wordId] }),
@@ -243,7 +244,7 @@ export const learningHistory = sqliteTable("learning_history", {
     .notNull()
     .references(() => words.id, { onDelete: "cascade" }),
   activityType: text("activity_type").notNull(), // "quiz" or "review"
-  result: integer("result", { mode: "boolean" }), // クイズの場合の正解/不正解
+  result: integer("result").default(0), // クイズの場合の正解(1)/不正解(0)
   timestamp: integer("timestamp", { mode: "timestamp_ms" })
     .notNull()
     .$defaultFn(() => new Date()),

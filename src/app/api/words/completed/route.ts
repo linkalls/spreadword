@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/db/dbclient";
 import { words, userWords } from "@/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, or, sql } from "drizzle-orm";
 
 export async function GET() {
   try {
@@ -14,13 +14,17 @@ export async function GET() {
       );
     }
 
-    // 完了済みの単語を取得
+    // 完了済みの単語を取得（completeが1、またはmistakeCountが-3以下）
     const completedWords = await db
       .select({
         id: words.id,
         word: words.word,
         meanings: words.meanings,
         part_of_speech: words.part_of_speech,
+        bookmarked: userWords.bookmarked,
+        notes: userWords.notes,
+        mistakeCount: userWords.mistakeCount,
+        complete: userWords.complete,
       })
       .from(words)
       .innerJoin(
@@ -28,7 +32,10 @@ export async function GET() {
         and(
           eq(userWords.wordId, words.id),
           eq(userWords.userId, session.user.id),
-          eq(userWords.complete, true)
+          or(
+            eq(userWords.complete, 1),
+            sql`${userWords.mistakeCount} <= -3`
+          )
         )
       )
       .orderBy(words.word);

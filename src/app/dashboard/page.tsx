@@ -14,10 +14,20 @@ async function getStats(): Promise<DashboardStats> {
   const { getUserLearningStats, getDailyStats } = await import(
     "@/db/actions/dashboard"
   );
-  const [generalStats, dailyStats] = await Promise.all([
+
+  const [rawGeneralStats, dailyStats] = await Promise.all([
     getUserLearningStats(session.user.id),
     getDailyStats(session.user.id),
   ]);
+
+  // type assertion
+  const generalStats = {
+    totalWords: rawGeneralStats.totalWords,
+    completedWords: rawGeneralStats.completedWords,
+    progressPercentage: rawGeneralStats.progressPercentage,
+    quizAccuracy: rawGeneralStats.quizAccuracy,
+    recentActivity: rawGeneralStats.recentActivity,
+  } as DashboardStats["generalStats"];
 
   return {
     generalStats,
@@ -138,9 +148,7 @@ async function DashboardContent() {
       <div className="bg-white p-6 rounded-lg shadow-sm border">
         <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
           学習の進捗
-          <span className="text-sm text-gray-500">
-            Study Progress
-          </span>
+          <span className="text-sm text-gray-500">Study Progress</span>
         </h3>
         <StudyProgressCards />
       </div>

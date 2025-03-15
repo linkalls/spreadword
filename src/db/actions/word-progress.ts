@@ -7,7 +7,7 @@ import { eq, and } from "drizzle-orm";
  * 単語の基本情報と完了状態を含む
  */
 export type WordProgress = Word & {
-  complete: boolean;
+  complete: number;
 };
 
 /**
@@ -39,13 +39,13 @@ export async function updateWordProgress(
       await db.insert(userWords).values({
         userId,
         wordId,
-        complete,
+        complete: complete ? 1 : 0,
       });
     } else {
       // レコードが存在する場合は更新
       await db
         .update(userWords)
-        .set({ complete })
+        .set({ complete: complete ? 1 : 0 })
         .where(
           and(
             eq(userWords.userId, userId),
@@ -103,7 +103,7 @@ export async function getUserWordProgress(
     // 単語と進捗情報を結合
     const wordProgress: WordProgress[] = allWords.map(word => ({
       ...word,
-      complete: progressMap.get(word.id) ?? false,
+      complete: progressMap.get(word.id) ?? 0,
     }));
 
     return {
@@ -145,7 +145,7 @@ export async function getUserProgressSummary(
       .where(
         and(
           eq(userWords.userId, userId),
-          eq(userWords.complete, true)
+          eq(userWords.complete, 1)
         )
       );
     const completed = completedWords.length;

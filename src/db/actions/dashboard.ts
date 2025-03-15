@@ -1,8 +1,9 @@
+import { auth } from "@/auth";
+import { userWords } from "@/db/schema";
+import { and, desc, eq, gte, lt, or, sql } from "drizzle-orm";
 import { db } from "../dbclient";
-import { eq, desc, and, gte, lt, sql } from "drizzle-orm";
-import { learningHistory, words, quizResults } from "../schema";
-import { getUserWordProgress, type WordProgress } from "./word-progress";
-
+import { learningHistory, quizResults, words } from "../schema";
+import { getUserWordProgress } from "./word-progress";
 
 /**
  * ユーザーの学習統計情報を取得する関数
@@ -13,7 +14,35 @@ export const getUserLearningStats = async (userId: string) => {
     // 単語の進捗状況を取得
     const userWordsData = await getUserWordProgress(userId);
     const totalWords = userWordsData.words.length;
-    const completedWords = userWordsData.words.filter((w: WordProgress) => w.complete).length;
+
+
+      const session = await auth();
+    
+
+    // 完了済みの単語を取得（completeが1、またはmistakeCountが-3以下）
+    const completedWords = await db
+      .select({
+        id: words.id,
+        word: words.word,
+        meanings: words.meanings,
+        part_of_speech: words.part_of_speech,
+        bookmarked: userWords.bookmarked,
+        notes: userWords.notes,
+        mistakeCount: userWords.mistakeCount,
+        complete: userWords.complete,
+      })
+      .from(words)
+      .innerJoin(
+        userWords,
+        and(
+          eq(userWords.wordId, words.id),
+          eq(userWords.userId, session!.user!.id!),
+          or(eq(userWords.complete, 1), sql`${userWords.mistakeCount} <= -3`)
+        )
+      )
+      .orderBy(words.word);
+
+    console.log(completedWords.length);
 
     // クイズの統計を取得
     const quizData = await db
@@ -41,27 +70,25 @@ export const getUserLearningStats = async (userId: string) => {
       .limit(10);
 
     // 学習進捗率を計算
-    const progressPercentage = totalWords > 0 
-      ? (completedWords / totalWords) * 100 
-      : 0;
+    const progressPercentage =
+      totalWords > 0 ? (completedWords.length / totalWords) * 100 : 0;
 
     // クイズの正解率を計算（新しいquizResultsテーブルから）
     const totalQuizzes = quizData.length;
-    const correctAnswers = quizData.filter(q => q.isCorrect).length;
-    const quizAccuracy = totalQuizzes > 0 
-      ? (correctAnswers / totalQuizzes) * 100 
-      : 0;
+    const correctAnswers = quizData.filter((q) => q.isCorrect).length;
+    const quizAccuracy =
+      totalQuizzes > 0 ? (correctAnswers / totalQuizzes) * 100 : 0;
 
     return {
       totalWords,
-      completedWords,
+      completedWords: completedWords.length,
       progressPercentage,
       quizAccuracy,
       recentActivity,
       quizStats: {
         totalQuizzes,
         correctAnswers,
-      }
+      },
     };
   } catch (error) {
     console.error("Error getting user learning stats:", error);
@@ -105,25 +132,26 @@ export const getDailyStats = async (userId: string, days: number = 7) => {
             eq(quizResults.userId, userId),
             gte(quizResults.timestamp, startDate)
           )
-        )
+        ),
     ]);
 
     // 日付ごとの統計を計算
     const dailyStats = Array.from({ length: days }, (_, i) => {
       const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-      const dayActivities = activities.filter(a => 
-        new Date(a.timestamp).toDateString() === date.toDateString()
+      const dayActivities = activities.filter(
+        (a) => new Date(a.timestamp).toDateString() === date.toDateString()
       );
-      const dayQuizzes = quizzes.filter(q => 
-        new Date(q.timestamp).toDateString() === date.toDateString()
+      const dayQuizzes = quizzes.filter(
+        (q) => new Date(q.timestamp).toDateString() === date.toDateString()
       );
 
       return {
         date: date.toISOString().split("T")[0],
         totalActivities: dayActivities.length + dayQuizzes.length,
         quizCount: dayQuizzes.length,
-        reviewCount: dayActivities.filter(a => a.activityType === "review").length,
-        correctAnswers: dayQuizzes.filter(q => q.isCorrect).length,
+        reviewCount: dayActivities.filter((a) => a.activityType === "review")
+          .length,
+        correctAnswers: dayQuizzes.filter((q) => q.isCorrect).length,
       };
     });
 
@@ -166,13 +194,16 @@ export const getIncorrectWordsByDate = async (userId: string, date: string) => {
 
     // null値の除外と型の変換
     return incorrectWords
-      .filter((word): word is { english: string; japanese: string; timestamp: Date } => 
-        word.english !== null && word.japanese !== null
+      .filter(
+        (
+          word
+        ): word is { english: string; japanese: string; timestamp: Date } =>
+          word.english !== null && word.japanese !== null
       )
-      .map(word => ({
+      .map((word) => ({
         english: word.english,
         japanese: word.japanese,
-        timestamp: word.timestamp
+        timestamp: word.timestamp,
       }));
   } catch (error) {
     console.error("Error getting incorrect words by date:", error);

@@ -15,7 +15,7 @@ interface WordProgressProps {
     word: string;
     meanings: string;
     part_of_speech?: string | null;
-    complete: boolean;
+    complete: boolean | number;
   };
 }
 

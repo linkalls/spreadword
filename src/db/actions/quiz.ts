@@ -47,7 +47,7 @@ export const saveQuizResult = async (
       userId,
       wordId,
       activityType: "quiz",
-      result: isCorrect,
+      result: isCorrect?1:0,
     });
   } catch (error) {
     console.error("Error saving quiz result:", error);

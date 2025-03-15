@@ -27,11 +27,11 @@ export async function POST(request: Request) {
       .values({
         userId: session.user.id,
         wordId: wordId,
-        complete: true,
+        complete: 1,
       })
       .onConflictDoUpdate({
         target: [userWords.userId, userWords.wordId],
-        set: { complete: true },
+        set: { complete: 1 },
       });
 
     return NextResponse.json({ success: true });

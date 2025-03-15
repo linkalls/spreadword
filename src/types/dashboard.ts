@@ -2,11 +2,13 @@
 export interface Activity {
   id: number;
   wordId: number;
-  word: string| null ;
+  word: string | null;
   activityType: string;
-  result: boolean|null;
-  timestamp: string|Date;
+  result: boolean | null;
+  timestamp: string | Date;
 }
+
+
 
 export interface DailyStat {
   date: string;
