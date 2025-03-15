@@ -1,11 +1,11 @@
 import { db } from "@/db/dbclient";
 import { words } from "@/db/schema";
-import { like } from "drizzle-orm";
+import { like, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { isAdmin } from "@/app/admin/adminRoleFetch";
 
-// 単語一覧を取得（検索機能付き）
+// 単語一覧を取得（検索機能、ページネーション付き）
 export async function GET(req: Request) {
   const session = await auth();
   const adminRole = await isAdmin(session!);
@@ -17,11 +17,34 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const search = searchParams.get("search");
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = 20;
+    const offset = (page - 1) * limit;
 
+    // 総件数を取得
+    const totalCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(words)
+      .where(search ? like(words.word, `%${search}%`) : undefined)
+      .then(result => Number(result[0].count));
+
+    // ページネーションを適用してデータを取得
     const wordsList = await db.query.words.findMany({
       where: search ? like(words.word, `%${search}%`) : undefined,
+      limit: limit,
+      offset: offset,
+      orderBy: (words, { desc }) => [desc(words.id)]
     });
-    return NextResponse.json(wordsList);
+
+    return NextResponse.json({
+      words: wordsList,
+      pagination: {
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+        currentPage: page,
+        limit
+      }
+    });
   } catch (error) {
     console.error("Error fetching words:", error);
     return new NextResponse("Internal Server Error", { status: 500 });

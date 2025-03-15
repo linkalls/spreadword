@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { useCallback, useEffect, useState } from "react";
-import { ChevronDown, Loader2 } from "lucide-react";
+import { ChevronDown, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface UserWithRole {
   id: string;
@@ -28,24 +28,39 @@ interface UserWithRole {
   }[];
 }
 
+interface PaginationInfo {
+  total: number;
+  totalPages: number;
+  currentPage: number;
+  limit: number;
+}
+
 export function UserManagementClient() {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [paginationInfo, setPaginationInfo] = useState<PaginationInfo>({
+    total: 0,
+    totalPages: 0,
+    currentPage: 1,
+    limit: 20,
+  });
 
   const fetchUsers = useCallback(async () => {
     try {
-      const response = await fetch("/api/admin/users");
+      const response = await fetch(`/api/admin/users?page=${currentPage}`);
       if (!response.ok) {
         throw new Error("Failed to fetch users");
       }
       const data = await response.json();
-      setUsers(data);
+      setUsers(data.users);
+      setPaginationInfo(data.pagination);
     } catch (error) {
       console.error("Error fetching users:", error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [currentPage]);
 
   useEffect(() => {
     fetchUsers();
@@ -139,6 +154,37 @@ export function UserManagementClient() {
           ))}
         </TableBody>
       </Table>
+
+      {/* ページネーション */}
+      {paginationInfo.totalPages > 1 && (
+        <div className="flex justify-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            前へ
+          </Button>
+          <div className="flex items-center gap-1">
+            <span className="text-sm">
+              {currentPage} / {paginationInfo.totalPages}
+            </span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              setCurrentPage((p) => Math.min(paginationInfo.totalPages, p + 1))
+            }
+            disabled={currentPage === paginationInfo.totalPages}
+          >
+            次へ
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
