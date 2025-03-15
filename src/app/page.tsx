@@ -41,6 +41,7 @@ export default function Home() {
               <Link
                 href="/demo"
                 className="px-6 py-3 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 font-medium"
+                prefetch={true}
               >
                 デモを見る
               </Link>
@@ -62,21 +63,20 @@ export default function Home() {
       <section className="py-16 px-6 bg-white">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12">主な特徴</h2>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-4 gap-8">
             <div className="flex flex-col items-center p-6 border rounded-lg hover:shadow-md transition-shadow">
               <Image
                 src={globePng}
-                alt="グローバル学習"
+                alt="スマート学習"
                 width={64}
                 height={64}
                 className="mb-4 w-auto"
               />
-
               <h3 className="text-xl font-semibold mb-2">
                 スマート学習システム
               </h3>
               <p className="text-center text-gray-600">
-                AIが個人の学習ペースに合わせて最適な単語を提案します
+                間違えた単語を自動的に復習に組み込み、効率的な学習を実現します
               </p>
             </div>
             <div className="flex flex-col items-center p-6 border rounded-lg hover:shadow-md transition-shadow">
@@ -89,20 +89,33 @@ export default function Home() {
               />
               <h3 className="text-xl font-semibold mb-2">詳細な進捗管理</h3>
               <p className="text-center text-gray-600">
-                あなたの学習状況を可視化し、モチベーションを維持します
+                学習統計とPDFレポートで、あなたの成長を可視化します
               </p>
             </div>
             <div className="flex flex-col items-center p-6 border rounded-lg hover:shadow-md transition-shadow">
               <Image
                 src={multiPng}
-                alt="クロスデバイス"
+                alt="カスタムリスト"
                 width={100}
                 height={100}
                 className="mb-4"
               />
-              <h3 className="text-xl font-semibold mb-2">マルチデバイス対応</h3>
+              <h3 className="text-xl font-semibold mb-2">カスタム単語リスト</h3>
               <p className="text-center text-gray-600">
-                いつでもどこでも、様々なデバイスから学習を継続できます
+                自分だけの単語リストを作成し、共有することができます
+              </p>
+            </div>
+            <div className="flex flex-col items-center p-6 border rounded-lg hover:shadow-md transition-shadow">
+              <Image
+                src="/window.svg"
+                alt="フラッシュカード"
+                width={64}
+                height={64}
+                className="mb-4"
+              />
+              <h3 className="text-xl font-semibold mb-2">フラッシュカード学習</h3>
+              <p className="text-center text-gray-600">
+                効率的な単語暗記とメモ機能で学習をサポートします
               </p>
             </div>
           </div>

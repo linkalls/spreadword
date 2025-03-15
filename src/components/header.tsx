@@ -1,4 +1,6 @@
+import { isAdmin } from "@/app/admin/adminRoleFetch";
 import { auth } from "@/auth";
+import { UserRoles } from "@/types/auth";
 import Image from "next/image";
 import Link from "next/link";
 import { AuthButtons } from "./auth-buttons";
@@ -13,6 +15,7 @@ export default async function Header() {
   // サーバーサイドでセッションを取得
   const session = await auth();
 
+  const userRole = await isAdmin(session!);
   // Next.jsのセッションユーザーを独自の型に変換
   const user = session?.user
     ? {
@@ -23,6 +26,10 @@ export default async function Header() {
         role: session.user.role,
       }
     : null;
+
+  if (userRole) {
+    user!.role = UserRoles.ADMIN;
+  }
 
   return (
     <HeaderScroll>
@@ -122,6 +129,16 @@ export default async function Header() {
                     単語クイズ
                   </Link>
                 </li>
+                {user.role === "admin" && (
+                  <li>
+                    <Link
+                      href="/admin"
+                      className="relative py-2 px-1 text-red-600 hover:text-red-700 font-medium transition-colors duration-200 before:content-[''] before:absolute before:-bottom-1 before:left-0 before:w-full before:h-0.5 before:bg-red-600 before:origin-right before:scale-x-0 before:transition-transform hover:before:scale-x-100 hover:before:origin-left"
+                    >
+                      管理画面
+                    </Link>
+                  </li>
+                )}
               </>
             )}
           </ul>

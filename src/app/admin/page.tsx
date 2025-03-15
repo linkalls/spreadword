@@ -7,7 +7,7 @@ export default async function AdminPage() {
   // セッション情報を取得
   const session = await auth();
 
-  console.log(session!.user);
+  // console.log(session!.user);
 
   // 認証されていない、またはadmin権限がない場合はリダイレクト
   if (!session?.user) {
