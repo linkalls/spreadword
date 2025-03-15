@@ -10,11 +10,17 @@ export async function GET(req: NextRequest) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // ユーザーIDを取得
+    const userId = session.user.id;
+    if (!userId) {
+      return Response.json({ error: "User ID not found" }, { status: 401 });
+    }
+
     // クエリパラメータから単語数を取得（デフォルト4）
     const count = Number(req.nextUrl.searchParams.get("count")) || 4;
 
-    // ランダムな単語を取得
-    const words = await getRandomWords(count);
+    // ユーザーに適した単語を取得
+    const words = await getRandomWords(userId, count);
 
     return Response.json({ words });
   } catch (error) {

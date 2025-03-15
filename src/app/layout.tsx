@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { SessionProvider } from "next-auth/react";
 import { Geist, Geist_Mono, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
+import { initializeSystem } from "@/db/actions/initialize";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,6 +26,9 @@ export const metadata: Metadata = {
   title: "SpreadWord",
   description: "スプレッドワードアプリケーション",
 };
+
+// アプリケーション起動時に初期化処理を実行
+initializeSystem().catch(console.error);
 
 export default function RootLayout({
   children,

@@ -3,7 +3,7 @@ import { userWords } from "@/db/schema";
 import { and, desc, eq, gte, lt, or, sql } from "drizzle-orm";
 import { db } from "../dbclient";
 import { learningHistory, quizResults, words } from "../schema";
-import { getUserWordProgress } from "./word-progress";
+import { getSystemStats } from "./system-stats";
 
 /**
  * ユーザーの学習統計情報を取得する関数
@@ -11,13 +11,10 @@ import { getUserWordProgress } from "./word-progress";
  */
 export const getUserLearningStats = async (userId: string) => {
   try {
-    // 単語の進捗状況を取得
-    const userWordsData = await getUserWordProgress(userId);
-    const totalWords = userWordsData.words.length;
+    const session = await auth();
 
-
-      const session = await auth();
-    
+    // システム統計から総単語数を取得
+    const { totalWords } = await getSystemStats();
 
     // 完了済みの単語を取得（completeが1、またはmistakeCountが-3以下）
     const completedWords = await db
@@ -41,8 +38,6 @@ export const getUserLearningStats = async (userId: string) => {
         )
       )
       .orderBy(words.word);
-
-    console.log(completedWords.length);
 
     // クイズの統計を取得
     const quizData = await db

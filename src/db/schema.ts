@@ -17,6 +17,8 @@ export type GroupMember = InferSelectModel<typeof groupMembers>;
 export type Achievement = InferSelectModel<typeof achievements>;
 export type UserAchievement = InferSelectModel<typeof userAchievements>;
 export type RankingHistory = InferSelectModel<typeof rankingHistory>;
+export type WordList = InferSelectModel<typeof wordLists>;
+export type WordListItem = InferSelectModel<typeof wordListItems>;
 
 // export const userTable = sqliteTable("users", {
 //   email: text("email").notNull(),
@@ -336,6 +338,71 @@ export const quizResultsRelations = relations(quizResults, ({ one }) => ({
   }),
   word: one(words, {
     fields: [quizResults.wordId],
+    references: [words.id],
+  }),
+}));
+
+/**
+ * 単語リストテーブル
+ * ユーザーが作成するカスタム単語リストを管理するテーブル
+ */
+export const wordLists = sqliteTable("word_lists", {
+  id: integer("id").notNull().primaryKey({ autoIncrement: true }),
+  userId: text("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),                    // リスト名
+  description: text("description"),                // リストの説明
+  isPublic: integer("is_public").default(0),      // 公開/非公開設定
+  shareId: text("share_id").unique(),             // シェア用のランダムID
+  createdAt: integer("created_at", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+/**
+ * 単語リストアイテムテーブル
+ * 単語リストと単語の中間テーブル
+ */
+export const wordListItems = sqliteTable(
+  "word_list_items",
+  {
+    listId: integer("list_id")
+      .notNull()
+      .references(() => wordLists.id, { onDelete: "cascade" }),
+    wordId: integer("word_id")
+      .notNull()
+      .references(() => words.id, { onDelete: "cascade" }),
+    addedAt: integer("added_at", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    notes: text("notes"),                         // 単語に対するメモ（リスト固有）
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.listId, t.wordId] }),
+  })
+);
+
+// 単語リストのリレーション
+export const wordListsRelations = relations(wordLists, ({ one, many }) => ({
+  user: one(users, {
+    fields: [wordLists.userId],
+    references: [users.id],
+  }),
+  items: many(wordListItems),
+}));
+
+// 単語リストアイテムのリレーション
+export const wordListItemsRelations = relations(wordListItems, ({ one }) => ({
+  list: one(wordLists, {
+    fields: [wordListItems.listId],
+    references: [wordLists.id],
+  }),
+  word: one(words, {
+    fields: [wordListItems.wordId],
     references: [words.id],
   }),
 }));
