@@ -15,7 +15,6 @@ export async function GET(
 
     // ユーザーIDを取得
     const userId = session.user.id;
-
     if (!userId) {
       return Response.json({ error: "User ID not found" }, { status: 401 });
     }
@@ -24,7 +23,10 @@ export async function GET(
     // リストIDを数値に変換
     const listId = parseInt(id, 10);
     if (isNaN(listId)) {
-      return Response.json({ error: "Invalid list ID" }, { status: 400 });
+      return Response.json(
+        { error: "Invalid list ID" },
+        { status: 400 }
+      );
     }
 
     // クエリパラメータから単語数を取得（デフォルト4）
@@ -37,8 +39,14 @@ export async function GET(
   } catch (error) {
     console.error("Error getting random words from list:", error);
     if (error instanceof Error && error.message === "List is empty") {
-      return Response.json({ error: "List is empty" }, { status: 400 });
+      return Response.json(
+        { error: "List is empty" },
+        { status: 400 }
+      );
     }
-    return Response.json({ error: "Internal Server Error" }, { status: 500 });
+    return Response.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }

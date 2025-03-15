@@ -4,7 +4,6 @@ import Link from "next/link";
 import { AuthButtons } from "./auth-buttons";
 import { HeaderScroll } from "./header-scroll";
 import { MobileMenu } from "./mobile-menu";
-import { type SessionUser } from "@/types/auth";
 
 /**
  * ヘッダーコンポーネント
@@ -13,14 +12,17 @@ import { type SessionUser } from "@/types/auth";
 export default async function Header() {
   // サーバーサイドでセッションを取得
   const session = await auth();
-  
+
   // Next.jsのセッションユーザーを独自の型に変換
-  const user: SessionUser | null = session?.user ? {
-    name: session.user.name,
-    email: session.user.email,
-    image: session.user.image,
-    id: session.user.id
-  } : null;
+  const user = session?.user
+    ? {
+        name: session.user.name,
+        email: session.user.email,
+        image: session.user.image,
+        id: session.user.id,
+        role: session.user.role,
+      }
+    : null;
 
   return (
     <HeaderScroll>

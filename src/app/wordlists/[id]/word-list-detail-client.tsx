@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { EditWordListDialog } from "@/components/word-list/edit-word-list-dialog";
 import { AddWordsDialog } from "@/components/word-list/add-words-dialog";
 import type { WordList, Word } from "@/db/schema";
+import WordListFlashCard from "@/components/word-list/word-list-flashcard";
 
 interface Props {
   list: WordList;
@@ -31,6 +32,7 @@ export function WordListDetailClient({ list, words, isOwner }: Props) {
   const [isAddWordsDialogOpen, setIsAddWordsDialogOpen] = useState(false);
   const [isRemovingWord, setIsRemovingWord] = useState<number | null>(null);
   const [showCopiedMessage, setShowCopiedMessage] = useState(false);
+  const [showFlashCards, setShowFlashCards] = useState(false);
 
   // コピーメッセージの自動非表示
   useEffect(() => {
@@ -139,12 +141,20 @@ export function WordListDetailClient({ list, words, isOwner }: Props) {
           </h2>
           <div className="flex gap-2">
             {words.length > 0 && (
-              <Button
-                variant="default"
-                onClick={() => router.push(`/quiz?list=${list.id}`)}
-              >
-                クイズを開始
-              </Button>
+              <>
+                <Button
+                  variant="default"
+                  onClick={() => router.push(`/quiz?list=${list.id}`)}
+                >
+                  クイズを開始
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowFlashCards(!showFlashCards)}
+                >
+                  {showFlashCards ? "リストに戻る" : "フラッシュカード"}
+                </Button>
+              </>
             )}
             {isOwner && (
               <Button
@@ -158,7 +168,11 @@ export function WordListDetailClient({ list, words, isOwner }: Props) {
         </div>
       </div>
 
-      {words.length === 0 ? (
+      {showFlashCards ? (
+        <div className="mt-4">
+          <WordListFlashCard listId={list.id.toString()} />
+        </div>
+      ) : words.length === 0 ? (
         <p className="text-center py-8 text-gray-500">
           まだ単語が登録されていません
         </p>

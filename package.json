@@ -15,7 +15,7 @@
     "@auth/drizzle-adapter": "^1.8.0",
     "@google/generative-ai": "^0.24.0",
     "@libsql/client": "^0.14.0",
-    "@radix-ui/react-slot": "^1.1.2",
+    "@radix-ui/react-label": "^2.1.2",
     "@react-pdf/renderer": "^4.3.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

@@ -1,4 +1,4 @@
-import { relations, InferSelectModel } from "drizzle-orm";
+import { InferSelectModel, relations } from "drizzle-orm";
 import {
   integer,
   primaryKey,
@@ -19,6 +19,8 @@ export type UserAchievement = InferSelectModel<typeof userAchievements>;
 export type RankingHistory = InferSelectModel<typeof rankingHistory>;
 export type WordList = InferSelectModel<typeof wordLists>;
 export type WordListItem = InferSelectModel<typeof wordListItems>;
+// テーブルの型定義に追加
+export type UserRole = InferSelectModel<typeof userRoles>;
 
 // export const userTable = sqliteTable("users", {
 //   email: text("email").notNull(),
@@ -41,6 +43,46 @@ export const users = sqliteTable("user", {
   totalPoints: integer("total_points").default(0),
   lastLoginDate: integer("last_login_date", { mode: "timestamp_ms" }),
 });
+
+/**
+ * ユーザーロールテーブル
+ * ユーザーの権限を管理するテーブル
+ */
+// ユーザーロールの型定義
+export enum UserRoleEnum {
+  "admin",
+  "user",
+}
+
+export const userRoles = sqliteTable(
+  "user_roles",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: text("role")
+      .$type<UserRoleEnum>()
+      .notNull()
+      .default(UserRoleEnum.user),
+    assignedAt: integer("assigned_at", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    assignedBy: text("assigned_by"), // 誰がこの権限を割り当てたか（管理者の場合）
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.userId] }),
+  })
+);
+
+// ユーザーロールのリレーション
+export const userRolesRelations = relations(userRoles, ({ one }) => ({
+  user: one(users, {
+    fields: [userRoles.userId],
+    references: [users.id],
+  }),
+}));
+
+// ...existing code...
 
 // フェーズ3: スタディグループ
 export const studyGroups = sqliteTable("study_groups", {
@@ -194,11 +236,11 @@ export const authenticators = sqliteTable(
  */
 export const words = sqliteTable("word", {
   id: integer("id").notNull().primaryKey({ autoIncrement: true }), // 単語のユニークID（自動採番）
-  word: text("word").notNull(),                                    // 単語そのもの
-  meanings: text("meanings").notNull(),                            // 単語の意味
-  part_of_speech: text("part_of_speech"),                         // 品詞（名詞、動詞など）
-  choices: text("choices"),                                       // 選択肢（クイズ用）
-  ex: text("ex"),                                                // 例文
+  word: text("word").notNull(), // 単語そのもの
+  meanings: text("meanings").notNull(), // 単語の意味
+  part_of_speech: text("part_of_speech"), // 品詞（名詞、動詞など）
+  choices: text("choices"), // 選択肢（クイズ用）
+  ex: text("ex"), // 例文
 });
 
 /**
@@ -206,7 +248,7 @@ export const words = sqliteTable("word", {
  * このテーブルの役割：
  * 1. ユーザーと単語の関係を管理（どのユーザーがどの単語を学習しているか）
  * 2. 各ユーザーの単語ごとの完了状態を保持
- * 
+ *
  * 例：
  * userId | wordId | complete
  * user1  | word1  | true     // user1はword1を完了
@@ -222,11 +264,11 @@ export const userWords = sqliteTable(
     wordId: integer("wordId")
       .notNull()
       .references(() => words.id, { onDelete: "cascade" }),
-    complete: integer("complete").default(0),        // 単語を習得済みかどうか（-3以下で1）
+    complete: integer("complete").default(0), // 単語を習得済みかどうか（-3以下で1）
     mistakeCount: integer("mistake_count").default(0), // クイズの進捗（3回連続正解で習得）
     lastMistakeDate: text("last_mistake_date").default(""), // YYYY-MM-DD形式
-    bookmarked: integer("bookmarked").default(0),    // ブックマークしているかどうか
-    notes: text("notes"),                            // 単語に対するメモ
+    bookmarked: integer("bookmarked").default(0), // ブックマークしているかどうか
+    notes: text("notes"), // 単語に対するメモ
   },
   (t) => ({
     pk: primaryKey({ columns: [t.userId, t.wordId] }),
@@ -272,13 +314,17 @@ export const quizResults = sqliteTable("quiz_results", {
 });
 
 // リレーションの更新
+// usersリレーションを更新して、rolesを含める
 export const usersRelations = relations(users, ({ many }) => ({
   words: many(userWords),
   learningHistory: many(learningHistory),
   quizResults: many(quizResults),
   groupMemberships: many(groupMembers),
   achievements: many(userAchievements),
+  roles: many(userRoles), // 新しいリレーションを追加
 }));
+
+// usersリレーションを更新して、rolesを含める
 
 // スタディグループのリレーション
 export const studyGroupsRelations = relations(studyGroups, ({ many }) => ({
@@ -303,16 +349,19 @@ export const achievementsRelations = relations(achievements, ({ many }) => ({
 }));
 
 // ユーザー実績のリレーション
-export const userAchievementsRelations = relations(userAchievements, ({ one }) => ({
-  user: one(users, {
-    fields: [userAchievements.userId],
-    references: [users.id],
-  }),
-  achievement: one(achievements, {
-    fields: [userAchievements.achievementId],
-    references: [achievements.id],
-  }),
-}));
+export const userAchievementsRelations = relations(
+  userAchievements,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [userAchievements.userId],
+      references: [users.id],
+    }),
+    achievement: one(achievements, {
+      fields: [userAchievements.achievementId],
+      references: [achievements.id],
+    }),
+  })
+);
 
 export const wordsRelations = relations(words, ({ many }) => ({
   users: many(userWords),
@@ -320,16 +369,19 @@ export const wordsRelations = relations(words, ({ many }) => ({
   quizResults: many(quizResults),
 }));
 
-export const learningHistoryRelations = relations(learningHistory, ({ one }) => ({
-  user: one(users, {
-    fields: [learningHistory.userId],
-    references: [users.id],
-  }),
-  word: one(words, {
-    fields: [learningHistory.wordId],
-    references: [words.id],
-  }),
-}));
+export const learningHistoryRelations = relations(
+  learningHistory,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [learningHistory.userId],
+      references: [users.id],
+    }),
+    word: one(words, {
+      fields: [learningHistory.wordId],
+      references: [words.id],
+    }),
+  })
+);
 
 export const quizResultsRelations = relations(quizResults, ({ one }) => ({
   user: one(users, {
@@ -351,10 +403,10 @@ export const wordLists = sqliteTable("word_lists", {
   userId: text("userId")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),                    // リスト名
-  description: text("description"),                // リストの説明
-  isPublic: integer("is_public").default(0),      // 公開/非公開設定
-  shareId: text("share_id").unique(),             // シェア用のランダムID
+  name: text("name").notNull(), // リスト名
+  description: text("description"), // リストの説明
+  isPublic: integer("is_public").default(0), // 公開/非公開設定
+  shareId: text("share_id").unique(), // シェア用のランダムID
   createdAt: integer("created_at", { mode: "timestamp_ms" })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -379,7 +431,7 @@ export const wordListItems = sqliteTable(
     addedAt: integer("added_at", { mode: "timestamp_ms" })
       .notNull()
       .$defaultFn(() => new Date()),
-    notes: text("notes"),                         // 単語に対するメモ（リスト固有）
+    notes: text("notes"), // 単語に対するメモ（リスト固有）
   },
   (t) => ({
     pk: primaryKey({ columns: [t.listId, t.wordId] }),
