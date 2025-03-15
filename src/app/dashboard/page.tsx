@@ -56,16 +56,6 @@ async function DashboardContent() {
         <StatsCard
           title={
             <>
-              総単語数{" "}
-              <span className="text-sm text-gray-500">Total Words</span>
-            </>
-          }
-          value={generalStats.totalWords}
-          unit="単語"
-        />
-        <StatsCard
-          title={
-            <>
               完了した単語{" "}
               <span className="text-sm text-gray-500">Completed Words</span>
             </>
@@ -168,20 +158,42 @@ async function DashboardContent() {
               className="flex justify-between items-center py-2 border-b last:border-b-0 hover:bg-gray-50 cursor-pointer transition-colors"
             >
               <div>
-                <p className="font-medium">
+                <p className="font-medium flex items-center gap-2">
                   {new Date(stat.date).toLocaleDateString("ja-JP", {
                     month: "short",
                     day: "numeric",
                   })}
+                  {stat.date === new Date().toISOString().split("T")[0] && (
+                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                      今日
+                    </span>
+                  )}
+                  {stat.date ===
+                    new Date(Date.now() - 86400000)
+                      .toISOString()
+                      .split("T")[0] && (
+                    <span className="text-xs bg-gray-100 text-gray-800 px-2 py-0.5 rounded">
+                      昨日
+                    </span>
+                  )}
                 </p>
-                <p className="text-sm text-gray-500">
-                  クイズ (Quiz): {stat.quizCount} / 復習 (Review):{" "}
-                  {stat.reviewCount}
-                </p>
+                <div className="flex gap-4 text-sm text-gray-500 mt-1">
+                  <span>クイズ (Quiz): {stat.quizCount}</span>
+                  <span>復習 (Review): {stat.reviewCount}</span>
+                  <span>合計: {stat.totalActivities}</span>
+                </div>
               </div>
               <div className="text-right">
-                <p className="font-medium">{stat.correctAnswers}</p>
-                <p className="text-sm text-gray-500">正解 (Correct)</p>
+                <div className="text-sm font-medium text-green-600">
+                  {stat.quizCount > 0 &&
+                    `${Math.round(
+                      (stat.correctAnswers / stat.quizCount) * 100
+                    )}%`}
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-medium">{stat.correctAnswers}</span>
+                  <span className="text-sm text-gray-500">正解 (Correct)</span>
+                </div>
               </div>
             </a>
           ))}
