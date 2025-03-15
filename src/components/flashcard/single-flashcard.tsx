@@ -122,7 +122,7 @@ export default function SingleFlashCard({ wordId }: { wordId: number }) {
     );
   }
 
-  console.log(card);
+  // console.log(card);
   return (
     <div className="max-w-2xl mx-auto">
       <div className="flex justify-end mb-4">

@@ -32,7 +32,7 @@ const styles = StyleSheet.create<Record<string, Style>>({
     color: "#ffffff",
     padding: 12,
     fontSize: 14,
-    width: "33.33%",
+    width: "50%",
     borderRightWidth: 1,
     borderRightColor: "#1e40af",
     borderRightStyle: "solid",
@@ -46,7 +46,7 @@ const styles = StyleSheet.create<Record<string, Style>>({
   tableCell: {
     padding: 12,
     fontSize: 12,
-    width: "33.33%",
+    width: "50%",
     borderRightWidth: 1,
     borderRightColor: "#e2e8f0",
     borderRightStyle: "solid",
@@ -93,9 +93,6 @@ export function IncorrectWordsSection({ incorrectWords }: IncorrectWordsSectionP
           <View style={styles.tableHeaderCell}>
             <Text>日本語訳</Text>
           </View>
-          <View style={[styles.tableHeaderCell, styles.lastCell]}>
-            <Text>時刻</Text>
-          </View>
         </View>
         {incorrectWords.map((word, index) => (
           <View
@@ -111,14 +108,6 @@ export function IncorrectWordsSection({ incorrectWords }: IncorrectWordsSectionP
             </View>
             <View style={styles.tableCell}>
               <Text style={styles.japaneseText}>{word.japanese}</Text>
-            </View>
-            <View style={[styles.tableCell, styles.lastCell]}>
-              <Text>
-                {word.timestamp.toLocaleTimeString("ja-JP", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </Text>
             </View>
           </View>
         ))}

@@ -1,6 +1,8 @@
 import { auth } from "@/auth";
 import { MistakeWordsStory } from "@/components/dashboard/mistake-words-story";
+import PDFDownloadButton from "@/components/dashboard/pdf-download-button";
 import { db } from "@/db/dbclient";
+import { getIncorrectWordsByDate, getUserLearningStats } from "@/db/actions/dashboard";
 import { userWords as userWordsTable, words as wordsTable } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
@@ -58,6 +60,53 @@ export default async function DailyDetailsPage({
       .groupBy(wordsTable.word, wordsTable.meanings)
       .execute();
 
+    if (!session.user.id) {
+      throw new Error("User ID not found");
+    }
+
+    // 学習統計を取得
+    const stats = await getUserLearningStats(session.user.id);
+    
+    // 間違えた単語のリストを取得
+    const incorrectWordsData = await getIncorrectWordsByDate(session.user.id, dateString);
+
+    // もっとも間違えやすい単語を取得（mistakeCountの降順でソート）
+    const mostMistakenWords = mistakeWords
+      .sort((a, b) => ((b.mistakeCount ?? 0) - (a.mistakeCount ?? 0)))
+      .slice(0, 5)
+      .map((word: { word: string; meanings: string | string[]; mistakeCount: number | null }) => ({
+        word: word.word,
+        meaning: Array.isArray(word.meanings) ? word.meanings.join("、") : word.meanings,
+        mistakeCount: word.mistakeCount || 0
+      }));
+
+    // PDFレポート用のデータを準備
+    const reportData = {
+      date: dateString,
+      formattedDate: jstDate.toLocaleDateString("ja-JP", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }),
+      incorrectWords: incorrectWordsData.map(word => ({
+        english: word.english,
+        japanese: Array.isArray(word.japanese) ? word.japanese.join("、") : word.japanese,
+        timestamp: word.timestamp,
+      })),
+      statistics: {
+        totalWordsLearned: stats.completedWords,
+        correctAnswerRate: Math.round(stats.quizAccuracy)/100,
+        totalStudyTime: 0, // この情報は現在取得できないため0をセット
+        dailyStreak: 1, // この情報は現在取得できないため1をセット
+        mostMistakenWords: mostMistakenWords
+      },
+      tips: [
+        "間違えた単語を定期的に復習しましょう",
+        "文脈の中で単語を覚えると効果的です",
+        "発音を意識して練習すると記憶に残りやすくなります",
+      ],
+    };
+
     return (
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-6">
@@ -69,6 +118,9 @@ export default async function DailyDetailsPage({
           の学習記録
         </h1>
         <MistakeWordsStory words={mistakeWords} />
+        <div className="mt-8">
+          <PDFDownloadButton reportData={reportData} />
+        </div>
       </div>
     );
   } catch (error) {
