@@ -5,14 +5,18 @@
 //   authToken: process.env.TURSO_AUTH_TOKEN,
 // });
 
-import { drizzle } from "drizzle-orm/libsql";
 import { createClient } from "@libsql/client";
-import * as schema from "./schema";
+import { drizzle } from "drizzle-orm/libsql";
 
 const turso = createClient({
   url: process.env.TURSO_DATABASE_URL!,
   authToken: process.env.TURSO_AUTH_TOKEN,
 });
 
+
+
+
+
 // スキーマを型定義として渡す
-export const db = drizzle(turso, { schema });
+export const db = drizzle(turso);
+

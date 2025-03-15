@@ -49,9 +49,9 @@ export const users = sqliteTable("user", {
  * ユーザーの権限を管理するテーブル
  */
 // ユーザーロールの型定義
-export enum UserRoleEnum {
-  "admin",
-  "user",
+export const enum UserRoleEnum {
+  ADMIN = "admin",
+  USER = "user"
 }
 
 export const userRoles = sqliteTable(
@@ -63,7 +63,7 @@ export const userRoles = sqliteTable(
     role: text("role")
       .$type<UserRoleEnum>()
       .notNull()
-      .default(UserRoleEnum.user),
+      .default(UserRoleEnum.USER),
     assignedAt: integer("assigned_at", { mode: "timestamp_ms" })
       .notNull()
       .$defaultFn(() => new Date()),
