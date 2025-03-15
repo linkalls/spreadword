@@ -23,6 +23,43 @@ export interface ReportTemplate {
     background: string;
     text: string;
   };
+  // フォント設定
+  fontSizes?: {
+    title: number;
+    heading: number;
+    subheading: number;
+    body: number;
+  };
+  // マージン設定（単位: mm）
+  margins?: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  };
+  // グラフスタイル
+  chartStyle?: {
+    showLegend: boolean;
+    showGrid: boolean;
+    barColor?: string;
+    lineColor?: string;
+    legendPosition: "top" | "bottom" | "left" | "right";
+  };
+  // スペーシング（単位: mm）
+  spacing?: {
+    betweenSections: number;
+    betweenElements: number;
+    paragraphSpacing: number;
+  };
+  // ヘッダー・フッター設定
+  headerFooter?: {
+    showHeader: boolean;
+    showFooter: boolean;
+    headerText?: string;
+    footerText?: string;
+    includePageNumber: boolean;
+    includeDatetime: boolean;
+  };
 }
 
 export interface LearningStatistics {
