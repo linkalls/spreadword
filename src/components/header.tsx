@@ -15,7 +15,7 @@ export default async function Header() {
   // サーバーサイドでセッションを取得
   const session = await auth();
 
-  const userRole = await isAdmin(session!);
+  const userRole = await isAdmin(session);
   // Next.jsのセッションユーザーを独自の型に変換
   const user = session?.user
     ? {
@@ -27,8 +27,8 @@ export default async function Header() {
       }
     : null;
 
-  if (userRole) {
-    user!.role = UserRoles.ADMIN;
+  if (userRole && user) {
+    user.role = UserRoles.ADMIN;
   }
 
   return (

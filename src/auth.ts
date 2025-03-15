@@ -3,8 +3,9 @@ import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import NextAuth from "next-auth";
 import type { Provider } from "next-auth/providers";
 import GitHub from "next-auth/providers/github";
+import Google from "next-auth/providers/google";
 
-const providers: Provider[] = [GitHub];
+const providers: Provider[] = [GitHub, Google];
 
 export const providerMap = providers.map((provider) => {
   if (typeof provider === "function") {
