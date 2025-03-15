@@ -8,7 +8,7 @@ import { isAdmin } from "@/app/admin/adminRoleFetch";
 // 単語を更新
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
   const adminRole = await isAdmin(session!);
@@ -20,7 +20,8 @@ export async function PUT(
   try {
     const body = await req.json();
     const { word, meanings, part_of_speech, choices, ex } = body;
-    const id = parseInt(params.id);
+    const {id:id1} = await params;
+    const id = parseInt(id1);
 
     // 必須フィールドの検証
     if (!word || !meanings) {
@@ -53,7 +54,7 @@ export async function PUT(
 // 単語を削除
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
   const adminRole = await isAdmin(session!);
@@ -63,7 +64,8 @@ export async function DELETE(
   }
 
   try {
-    const id = parseInt(params.id);
+    const {id:id1} = await params;
+    const id = parseInt(id1);
     const deletedWord = await db
       .delete(words)
       .where(eq(words.id, id))

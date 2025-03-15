@@ -2,6 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Table,
   TableBody,
   TableCell,
@@ -9,7 +15,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { toast } from "sonner";
 import { useCallback, useEffect, useState } from "react";
+import { ChevronDown, Loader2 } from "lucide-react";
 
 interface UserWithRole {
   id: string;
@@ -65,7 +73,11 @@ export function UserManagementClient() {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex h-[200px] w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
   }
 
   return (
@@ -88,23 +100,40 @@ export function UserManagementClient() {
                 {user.roles.length > 0 ? user.roles[0].role : "user"}
               </TableCell>
               <TableCell>
-                <div className="space-x-2">
-                  {user.roles.length === 0 || user.roles[0].role === "user" ? (
-                    <Button
-                      variant="outline"
-                      onClick={() => updateUserRole(user.id, "admin")}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="min-w-[120px]">
+                      権限変更
+                      <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        toast.promise(updateUserRole(user.id, "admin"), {
+                          loading: "権限を更新中...",
+                          success: "管理者権限に更新しました",
+                          error: "権限の更新に失敗しました",
+                        });
+                      }}
+                      disabled={user.roles[0]?.role === "admin"}
                     >
                       管理者に昇格
-                    </Button>
-                  ) : user.roles[0].role === "admin" ? (
-                    <Button
-                      variant="outline"
-                      onClick={() => updateUserRole(user.id, "user")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        toast.promise(updateUserRole(user.id, "user"), {
+                          loading: "権限を更新中...",
+                          success: "一般ユーザー権限に更新しました",
+                          error: "権限の更新に失敗しました",
+                        });
+                      }}
+                      disabled={!user.roles[0] || user.roles[0]?.role === "user"}
                     >
                       一般ユーザーに降格
-                    </Button>
-                  ) : null}
-                </div>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
           ))}

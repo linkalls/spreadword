@@ -4,6 +4,7 @@ import { SessionProvider } from "next-auth/react";
 import { Geist, Geist_Mono, Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import { initializeSystem } from "@/db/actions/initialize";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,11 +39,12 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${notoSansJP.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${notoSansJP.variable} antialiased min-h-screen `}
       >
         <SessionProvider>
           <Header />
           {children}
+          <Toaster />
         </SessionProvider>
       </body>
     </html>
