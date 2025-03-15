@@ -1,6 +1,6 @@
 import { eq, and } from "drizzle-orm";
 import { db } from "../dbclient";
-import { wordLists, wordListItems, words } from "../schema";
+import { wordLists, wordListItems, words, userWords } from "../schema";
 import type { WordList, Word } from "../schema";
 
 /**
@@ -197,14 +197,44 @@ export async function removeWordFromList({
 /**
  * リストに含まれる単語一覧を取得する
  */
-export async function getWordsInList(listId: number): Promise<
+export async function getWordsInList(listId: number, userId?: string): Promise<
   Array<
     Word & {
       notes?: string | null;
       addedAt: Date;
+      progress?: {
+        complete: number;
+        mistakeCount: number;
+        lastMistakeDate: string;
+      };
     }
   >
 > {
+  if (!userId) {
+    // ユーザーIDがない場合は進捗情報なしで返す
+    const items = await db
+      .select({
+        id: words.id,
+        word: words.word,
+        meanings: words.meanings,
+        part_of_speech: words.part_of_speech,
+        choices: words.choices,
+        ex: words.ex,
+        notes: wordListItems.notes,
+        addedAt: wordListItems.addedAt,
+      })
+      .from(wordListItems)
+      .innerJoin(words, eq(wordListItems.wordId, words.id))
+      .where(eq(wordListItems.listId, listId))
+      .orderBy(wordListItems.addedAt);
+
+    return items.map(item => ({
+      ...item,
+      progress: undefined
+    }));
+  }
+
+  // ユーザーIDがある場合は進捗情報も含めて返す
   const items = await db
     .select({
       id: words.id,
@@ -215,11 +245,35 @@ export async function getWordsInList(listId: number): Promise<
       ex: words.ex,
       notes: wordListItems.notes,
       addedAt: wordListItems.addedAt,
+      complete: userWords.complete,
+      mistakeCount: userWords.mistakeCount,
+      lastMistakeDate: userWords.lastMistakeDate,
     })
     .from(wordListItems)
     .innerJoin(words, eq(wordListItems.wordId, words.id))
+    .leftJoin(
+      userWords,
+      and(
+        eq(userWords.wordId, words.id),
+        eq(userWords.userId, userId)
+      )
+    )
     .where(eq(wordListItems.listId, listId))
     .orderBy(wordListItems.addedAt);
 
-  return items;
+  return items.map(item => ({
+    id: item.id,
+    word: item.word,
+    meanings: item.meanings,
+    part_of_speech: item.part_of_speech,
+    choices: item.choices,
+    ex: item.ex,
+    notes: item.notes,
+    addedAt: item.addedAt,
+    progress: {
+      complete: item.complete ?? 0,
+      mistakeCount: item.mistakeCount ?? 0,
+      lastMistakeDate: item.lastMistakeDate ?? "",
+    }
+  }));
 }

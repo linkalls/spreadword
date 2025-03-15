@@ -12,6 +12,11 @@ interface Props {
   words: (Word & {
     notes?: string | null;
     addedAt: Date;
+    progress?: {
+      complete: number;
+      mistakeCount: number;
+      lastMistakeDate: string;
+    };
   })[];
   isOwner: boolean;
 }
@@ -128,17 +133,29 @@ export function WordListDetailClient({ list, words, isOwner }: Props) {
       </div>
 
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-xl font-semibold">
-          登録単語 ({words.length})
-        </h2>
-        {isOwner && (
-          <Button
-            variant="outline"
-            onClick={() => setIsAddWordsDialogOpen(true)}
-          >
-            単語を追加
-          </Button>
-        )}
+        <div className="flex gap-4 items-center">
+          <h2 className="text-xl font-semibold">
+            登録単語 ({words.length})
+          </h2>
+          <div className="flex gap-2">
+            {words.length > 0 && (
+              <Button
+                variant="default"
+                onClick={() => router.push(`/quiz?list=${list.id}`)}
+              >
+                クイズを開始
+              </Button>
+            )}
+            {isOwner && (
+              <Button
+                variant="outline"
+                onClick={() => setIsAddWordsDialogOpen(true)}
+              >
+                単語を追加
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
 
       {words.length === 0 ? (
@@ -153,15 +170,52 @@ export function WordListDetailClient({ list, words, isOwner }: Props) {
               className="p-4 border rounded-lg hover:shadow-sm transition-shadow"
             >
               <div className="flex justify-between items-start">
-                <div>
+              <div className="flex-grow">
+                <div className="flex items-center gap-2">
                   <h3 className="font-bold">{word.word}</h3>
-                  <p className="mt-1 text-gray-600">{word.meanings}</p>
-                  {word.notes && (
-                    <p className="mt-2 text-sm text-gray-500">
-                      メモ: {word.notes}
-                    </p>
+                  {word.progress && (
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 bg-gray-200 rounded-full w-24">
+                        <div
+                          className={`h-2 rounded-full ${
+                            word.progress.complete === 1
+                              ? "bg-green-500"
+                              : word.progress.mistakeCount > 0
+                              ? "bg-yellow-500"
+                              : "bg-blue-500"
+                          }`}
+                          style={{
+                            width: `${Math.min(
+                              ((3 - word.progress.mistakeCount) / 3) * 100,
+                              100
+                            )}%`,
+                          }}
+                        />
+                      </div>
+                      <span className="text-sm text-gray-500">
+                        {word.progress.complete === 1
+                          ? "習得済み"
+                          : `${Math.min(
+                              ((3 - word.progress.mistakeCount) / 3) * 100,
+                              100
+                            ).toFixed(0)}%`}
+                      </span>
+                    </div>
                   )}
                 </div>
+                <p className="mt-1 text-gray-600">{word.meanings}</p>
+                {word.notes && (
+                  <p className="mt-2 text-sm text-gray-500">
+                    メモ: {word.notes}
+                  </p>
+                )}
+                {word.progress?.mistakeCount ? (
+                  <p className="mt-1 text-sm text-red-500">
+                    間違えた回数: {word.progress.mistakeCount}回
+                    {word.progress.lastMistakeDate && ` (最終: ${new Date(word.progress.lastMistakeDate).toLocaleDateString()})`}
+                  </p>
+                ) : null}
+              </div>
                 {isOwner && (
                   <Button
                     variant="ghost"

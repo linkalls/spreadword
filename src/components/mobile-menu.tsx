@@ -146,6 +146,15 @@ export function MobileMenu({ user }: MobileMenuProps) {
               </li>
               <li>
                 <Link
+                  href="/wordlists"
+                  className="block py-2 px-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  単語リスト
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/quiz"
                   className="block py-2 px-2 rounded-lg text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                   onClick={() => setIsMenuOpen(false)}

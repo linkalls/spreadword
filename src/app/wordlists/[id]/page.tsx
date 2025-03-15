@@ -34,8 +34,8 @@ async function WordListDetailContent({ listId }: { listId: number }) {
     redirect("/wordlists"); // 権限がない場合は一覧へリダイレクト
   }
 
-  // リストに含まれる単語を取得
-  const words = await getWordsInList(listId);
+  // リストに含まれる単語を取得（ユーザーの進捗情報も含める）
+  const words = await getWordsInList(listId, session.user.id);
 
   return (
     <WordListDetailClient
