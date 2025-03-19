@@ -13,6 +13,7 @@ interface FlashCardData {
   ex: string | null;
   bookmarked?: number;
   notes?: string;
+  complete?: number;
 }
 
 interface WordListFlashCardProps {
@@ -31,30 +32,58 @@ export default function WordListFlashCard({ listId }: WordListFlashCardProps) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    const fetchCards = async () => {
+      try {
+        const response = await fetch(`/api/wordlists/${listId}/flashcards`);
+        if (!response.ok) throw new Error("Failed to fetch cards");
+        const data = await response.json();
+        setCards(data);
+      } catch (error) {
+        console.error("Error fetching flashcards:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchCards();
   }, [listId]);
 
-  // カードデータが変更されたときの処理
-  useEffect(() => {
-    if (cards.length > 0 && currentIndex < cards.length) {
-      const card = cards[currentIndex];
-      setIsBookmarked(card.bookmarked === 1);
-      setUserNote(card.notes || "");
-    }
-  }, [currentIndex, cards]);
 
-  const fetchCards = async () => {
+  // カードの最新データを取得する関数
+  const fetchCurrentCardData = async (cardId: number) => {
     try {
-      const response = await fetch(`/api/wordlists/${listId}/flashcards`);
-      if (!response.ok) throw new Error("Failed to fetch cards");
+      const response = await fetch(`/api/flashcards/${cardId}`);
+      if (!response.ok) throw new Error("Failed to fetch card data");
       const data = await response.json();
-      setCards(data);
+      
+      // カードの状態を更新
+      setCards(prevCards =>
+        prevCards.map(card =>
+          card.id === cardId
+            ? {
+                ...card,
+                bookmarked: data.bookmarked,
+                notes: data.notes,
+                complete: data.complete
+              }
+            : card
+        )
+      );
+      
+      // UI状態を更新
+      setIsBookmarked(data.bookmarked === 1);
+      setUserNote(data.notes || "");
+      setIsCompleted(data.complete === 1);
     } catch (error) {
-      console.error("Error fetching flashcards:", error);
-    } finally {
-      setLoading(false);
+      console.error("Error fetching card data:", error);
     }
   };
+
+  // 初期カードデータの設定
+  useEffect(() => {
+    if (cards.length > 0 && currentIndex < cards.length) {
+      fetchCurrentCardData(cards[currentIndex].id);
+    }
+  }, [cards,currentIndex]);
 
   const handleBookmark = async () => {
     if (!cards.length || currentIndex >= cards.length) return;
@@ -146,14 +175,18 @@ export default function WordListFlashCard({ listId }: WordListFlashCardProps) {
     speechSynthesis.speak(utterance);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     setIsFlipped(false);
-    setCurrentIndex((prev) => (prev + 1) % cards.length);
+    const nextIndex = (currentIndex + 1) % cards.length;
+    setCurrentIndex(nextIndex);
+    await fetchCurrentCardData(cards[nextIndex].id);
   };
 
-  const handlePrevious = () => {
+  const handlePrevious = async () => {
     setIsFlipped(false);
-    setCurrentIndex((prev) => (prev - 1 + cards.length) % cards.length);
+    const prevIndex = (currentIndex - 1 + cards.length) % cards.length;
+    setCurrentIndex(prevIndex);
+    await fetchCurrentCardData(cards[prevIndex].id);
   };
 
   if (loading) {
@@ -210,6 +243,15 @@ export default function WordListFlashCard({ listId }: WordListFlashCardProps) {
                   });
                   if (!response.ok) throw new Error('Failed to mark as complete');
                   setIsCompleted(true);
+                  
+                  // 完了状態を更新
+                  setCards(prevCards =>
+                    prevCards.map(card =>
+                      card.id === currentCard.id
+                        ? { ...card, complete: 1 }
+                        : card
+                    )
+                  );
                 } catch (error) {
                   console.error('Error marking flashcard as complete:', error);
                 }

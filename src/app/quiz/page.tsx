@@ -32,9 +32,37 @@ export default function QuizPage() {
     }
   }, [status, router]);
 
+  // 新しい問題を取得する関数
+  const fetchNewQuestions = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        listId
+          ? `/api/wordlists/${listId}/quiz?count=10` // リストIDがある場合はリストの単語を取得
+          : "/api/quiz/random?count=10" // ない場合はランダムな単語を取得
+      );
+      if (!response.ok) {
+        throw new Error("単語の取得に失敗しました");
+      }
+      const newWords = await response.json();
+      if (!newWords || !Array.isArray(newWords) || newWords.length === 0) {
+        throw new Error("単語が見つかりませんでした");
+      }
+
+      setWords(newWords);
+      setCurrentWord(newWords[0]);
+      setCurrentQuestionIndex(0);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "エラーが発生しました");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const searchParams = useSearchParams();
   const listId = searchParams?.get("list");
-  console.log("listId", listId);
+  // console.log("listId", listId);
 
   // リストから単語を取得する関数
   const fetchListWord = async () => {
@@ -57,12 +85,12 @@ export default function QuizPage() {
 
       // 全ての単語を保存
       setWords(words);
-      
+
       // 最初の単語を問題として使用
       if (words.length === 0) {
         throw new Error("単語が見つかりませんでした");
       }
-      
+
       setCurrentWord(words[0]);
       setCurrentQuestionIndex(0);
     } catch (err) {
@@ -72,34 +100,28 @@ export default function QuizPage() {
     }
   };
 
+  // 初期データの取得
   useEffect(() => {
-    const fetchListWord = async () => {
+    // 新しい問題を取得する関数
+    const fetchNewQuestions = async () => {
       setIsLoading(true);
       setError(null);
       try {
         const response = await fetch(
           listId
-            ? `/api/wordlists/${listId}/quiz` // リストIDがある場合はリストの単語を取得
-            : "/api/quiz/random" // ない場合はランダムな単語を取得
+            ? `/api/wordlists/${listId}/quiz?count=10` // リストIDがある場合はリストの単語を取得
+            : "/api/quiz/random?count=10" // ない場合はランダムな単語を取得
         );
         if (!response.ok) {
           throw new Error("単語の取得に失敗しました");
         }
-        const words = await response.json();
-        console.log("words", words);
-        if (!words || !Array.isArray(words) || words.length === 0) {
+        const newWords = await response.json();
+        if (!newWords || !Array.isArray(newWords) || newWords.length === 0) {
           throw new Error("単語が見つかりませんでした");
         }
-  
-        // 全ての単語を保存
-        setWords(words);
-        
-        // 最初の単語を問題として使用
-        if (words.length === 0) {
-          throw new Error("単語が見つかりませんでした");
-        }
-        
-        setCurrentWord(words[0]);
+
+        setWords(newWords);
+        setCurrentWord(newWords[0]);
         setCurrentQuestionIndex(0);
       } catch (err) {
         setError(err instanceof Error ? err.message : "エラーが発生しました");
@@ -108,9 +130,9 @@ export default function QuizPage() {
       }
     };
     if (status === "authenticated") {
-      fetchListWord();
+      fetchNewQuestions();
     }
-  }, [status,listId]);
+  }, [status, listId]);
 
   // 回答処理
   const handleAnswer = async (isCorrect: boolean, selectedChoice: string) => {
@@ -130,7 +152,7 @@ export default function QuizPage() {
         }),
       });
 
-          // 結果を保存するだけで、遷移は「次の問題へ」ボタンで行う
+      // 結果を保存するだけで、遷移は「次の問題へ」ボタンで行う
     } catch (error) {
       console.error("Failed to save quiz result:", error);
     }
@@ -169,7 +191,7 @@ export default function QuizPage() {
           <QuizCard
             question={currentWord}
             onAnswer={handleAnswer}
-            onComplete={() => router.push('/dashboard')}
+            onComplete={fetchNewQuestions}
             onNext={() => {
               const nextIndex = currentQuestionIndex + 1;
               setCurrentQuestionIndex(nextIndex);

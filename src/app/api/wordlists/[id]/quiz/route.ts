@@ -1,13 +1,16 @@
 import { auth } from "@/auth";
 import { db } from "@/db/dbclient";
 import { wordListItems, words } from "@/db/schema";
-import { eq, inArray,sql } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // URLSearchParamsを使用してクエリパラメータを取得
+  const { searchParams } = new URL(request.url);
+  const count = Number(searchParams.get("count")) || 10; // デフォルトは10問
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -38,23 +41,23 @@ export async function GET(
         meanings: words.meanings,
         part_of_speech: words.part_of_speech,
         choices: words.choices,
-        ex: words.ex
+        ex: words.ex,
       })
       .from(words)
       .where(inArray(words.id, wordIds));
 
     // 選択肢が文字列の場合は配列に変換
-    const wordsWithParsedChoices = wordsList.map(word => ({
+    const wordsWithParsedChoices = wordsList.map((word) => ({
       ...word,
-      choices: word.choices ? JSON.parse(word.choices) : [word.meanings]
+      choices: word.choices ? JSON.parse(word.choices) : [word.meanings],
     }));
 
-    // ランダムに10問を選択
+    // ランダムに指定された数の問題を選択
     const selectedWords = wordsWithParsedChoices
       .map((value) => ({ value, sort: Math.random() }))
       .sort((a, b) => a.sort - b.sort)
       .map(({ value }) => value)
-      .slice(0, 10); // 最大10問まで
+      .slice(0, count);
 
     return new NextResponse(JSON.stringify(selectedWords), {
       headers: {

@@ -323,7 +323,8 @@ export const saveQuizResult = async (
             .update(userWords)
             .set({
               mistakeCount: (userWord.mistakeCount || 0) + 1,
-              lastMistakeDate: new Date().toISOString().split("T")[0], // YYYY-MM-DD形式
+              // 日本時間で日付を取得
+              lastMistakeDate: new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' })).toISOString().split('T')[0],
               complete: 0, // 不正解の場合は完了フラグをリセット
             })
             .where(
@@ -348,9 +349,9 @@ export const saveQuizResult = async (
           wordId,
           complete: isCorrect ? -2 : -3, // 正解なら-2から、不正解なら-3からスタート
           mistakeCount: isCorrect ? 0 : 1,
-          lastMistakeDate: isCorrect
+            lastMistakeDate: isCorrect
             ? null
-            : new Date().toISOString().split("T")[0],
+            : new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' })).toISOString().split('T')[0],
         });
       }
     });
