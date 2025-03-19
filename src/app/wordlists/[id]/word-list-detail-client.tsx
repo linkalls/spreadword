@@ -3,11 +3,14 @@
 import { Button } from "@/components/ui/button";
 import { AddWordsDialog } from "@/components/word-list/add-words-dialog";
 import { EditWordListDialog } from "@/components/word-list/edit-word-list-dialog";
+import { Input } from "@/components/ui/input";
 import WordListFlashCard from "@/components/word-list/word-list-flashcard";
 import WordListPDFButton from "@/components/word-list/word-list-pdf";
 import type { Word, WordList } from "@/db/schema";
+import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useDebounce } from "@/hooks/use-debounce";
 
 interface Props {
   list: WordList;
@@ -34,6 +37,17 @@ export function WordListDetailClient({ list, words, isOwner }: Props) {
   const [isRemovingWord, setIsRemovingWord] = useState<number | null>(null);
   const [showCopiedMessage, setShowCopiedMessage] = useState(false);
   const [showFlashCards, setShowFlashCards] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 300);
+
+  // 検索結果のフィルタリング
+  const filteredWords = useMemo(() => {
+    if (!debouncedSearch) return words;
+    return words.filter(word => 
+      word.word.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      word.meanings.toLowerCase().includes(debouncedSearch.toLowerCase())
+    );
+  }, [words, debouncedSearch]);
 
   // コピーメッセージの自動非表示
   useEffect(() => {
@@ -142,11 +156,47 @@ export function WordListDetailClient({ list, words, isOwner }: Props) {
       </div>
 
       <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-          <h2 className="text-lg sm:text-xl font-semibold">
-            登録単語 ({words.length})
-          </h2>
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center w-full">
+          <div className="relative flex-1 max-w-md">
+            <form 
+              className="w-full"
+              onSubmit={(e) => {
+                e.preventDefault();
+                // フォーカスを外す
+                (document.activeElement as HTMLElement)?.blur();
+              }}
+            >
+              <div className="relative">
+                <Input
+                  type="search"
+                  placeholder="単語を検索..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pr-20"
+                />
+                <div className="absolute right-1 top-1/2 transform -translate-y-1/2 flex items-center">
+                  {searchQuery && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSearchQuery("")}
+                      className="h-7 px-2 mr-1"
+                    >
+                      ✕
+                    </Button>
+                  )}
+                  <Button type="submit" variant="ghost" size="sm" className="h-7 px-2">
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </form>
+          </div>
           <div className="flex gap-2">
+            <h2 className="text-lg sm:text-xl font-semibold">
+              登録単語 ({filteredWords.length})
+            </h2>
             {words.length > 0 && (
               <>
                 <Button
@@ -179,13 +229,19 @@ export function WordListDetailClient({ list, words, isOwner }: Props) {
         <div className="mt-4">
           <WordListFlashCard listId={list.id.toString()} />
         </div>
-      ) : words.length === 0 ? (
-        <p className="text-center py-8 text-gray-500">
-          まだ単語が登録されていません
-        </p>
+      ) : filteredWords.length === 0 ? (
+        <div className="text-center py-8">
+          {debouncedSearch ? (
+            <p className="text-gray-600">
+              「{debouncedSearch}」に一致する単語は見つかりませんでした
+            </p>
+          ) : (
+            <p className="text-gray-500">まだ単語が登録されていません</p>
+          )}
+        </div>
       ) : (
         <div className="grid gap-4">
-          {words.map((word) => (
+          {filteredWords.map((word) => (
             <div
               key={word.id}
               className="p-3 sm:p-4 border rounded-lg hover:shadow-sm transition-shadow"

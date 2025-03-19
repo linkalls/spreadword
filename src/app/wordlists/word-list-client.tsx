@@ -37,7 +37,7 @@ export function WordListClient({ lists }: Props) {
 
   return (
     <div>
-      <div className="flex justify-end mb-4 sm:mb-6">
+      <div className="flex justify-end mb-4">
         <Button onClick={() => setIsDialogOpen(true)}>
           新しいリストを作成
         </Button>

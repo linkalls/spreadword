@@ -50,8 +50,14 @@ export default function QuizPage() {
         throw new Error("単語が見つかりませんでした");
       }
 
-      setWords(newWords);
-      setCurrentWord(newWords[0]);
+      // 選択肢をシャッフルする
+      const shuffledWords = newWords.map(word => ({
+        ...word,
+        choices: [...word.choices].sort(() => Math.random() - 0.5)
+      }));
+
+      setWords(shuffledWords);
+      setCurrentWord(shuffledWords[0]);
       setCurrentQuestionIndex(0);
     } catch (err) {
       setError(err instanceof Error ? err.message : "エラーが発生しました");
@@ -83,15 +89,21 @@ export default function QuizPage() {
         throw new Error("単語が見つかりませんでした");
       }
 
+      // 選択肢をシャッフル
+      const shuffledWords = words.map(word => ({
+        ...word,
+        choices: [...word.choices].sort(() => Math.random() - 0.5)
+      }));
+
       // 全ての単語を保存
-      setWords(words);
+      setWords(shuffledWords);
 
       // 最初の単語を問題として使用
       if (words.length === 0) {
         throw new Error("単語が見つかりませんでした");
       }
 
-      setCurrentWord(words[0]);
+      setCurrentWord(shuffledWords[0]);
       setCurrentQuestionIndex(0);
     } catch (err) {
       setError(err instanceof Error ? err.message : "エラーが発生しました");
@@ -120,8 +132,14 @@ export default function QuizPage() {
           throw new Error("単語が見つかりませんでした");
         }
 
-        setWords(newWords);
-        setCurrentWord(newWords[0]);
+        // 選択肢をシャッフルする
+        const shuffledWords = newWords.map(word => ({
+          ...word,
+          choices: [...word.choices].sort(() => Math.random() - 0.5)
+        }));
+
+        setWords(shuffledWords);
+        setCurrentWord(shuffledWords[0]);
         setCurrentQuestionIndex(0);
       } catch (err) {
         setError(err instanceof Error ? err.message : "エラーが発生しました");
