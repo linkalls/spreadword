@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150" width="200" height="150">
+  <!-- PC -->
+  <rect x="50" y="10" width="100" height="60" rx="10" ry="10" fill="none" stroke="black" stroke-width="2"/>
+  <rect x="70" y="70" width="60" height="5" fill="none" stroke="black" stroke-width="2"/>
+
+  <!-- Laptop -->
+  <rect x="10" y="50" width="60" height="40" rx="5" ry="5" fill="none" stroke="black" stroke-width="2"/>
+  <rect x="20" y="90" width="40" height="5" fill="none" stroke="black" stroke-width="2"/>
+
+  <!-- Tablet -->
+  <rect x="120" y="30" width="50" height="80" rx="10" ry="10" fill="none" stroke="black" stroke-width="2"/>
+  <circle cx="145" cy="120" r="3" fill="none" stroke="black" stroke-width="2"/>
+
+  
+</svg>
