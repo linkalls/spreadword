@@ -9,10 +9,10 @@ export default auth((req) => {
     "/pricing",
     "/features",
     "contact",
-    "demo",
-    "terms",
-    "terms/privacy",
-    "blog",
+    "/demo",
+    "/terms",
+    "/terms/privacy",
+    "/blog",
   ];
 
   const pathname = req.nextUrl.pathname;
