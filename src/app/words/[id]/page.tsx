@@ -27,20 +27,10 @@ export default async function WordDetailPage({
     .from(wordsTable)
     .where(eq(wordsTable.id, parseInt(id)));
 
-  if (!word) {
+  // 単語が見つからない場合は一覧ページにリダイレクト
+  if (!word || word.length === 0) {
     redirect("/words");
   }
-
-  // ユーザーの単語学習状況を取得する意味はないな
-  // const userWord = await db
-  //   .select()
-  //   .from(userWordsTable)
-  //   .where(eq(userWordsTable.wordId, word[0].id))
-  //   .execute();
-
-  // if (!userWord || userWord.length === 0) {
-  //   redirect('/words');
-  // }
 
   return (
     <div className="container mx-auto px-4 py-8">

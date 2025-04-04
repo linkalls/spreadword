@@ -1,12 +1,15 @@
+import systemStats from "@/db/system-stats.json";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "../dbclient";
 import { userWords, words, type Word } from "../schema";
-import { eq, and, sql } from "drizzle-orm";
+
+const totalJson: { totalWords: number } = systemStats;
 
 /**
  * WordProgressの型定義
  * 単語の基本情報と完了状態を含む
  */
-export type WordProgress = Omit<Word, 'choices'> & {
+export type WordProgress = Omit<Word, "choices"> & {
   complete: number;
   choices?: string | null;
 };
@@ -28,12 +31,7 @@ export async function updateWordProgress(
     const existing = await db
       .select()
       .from(userWords)
-      .where(
-        and(
-          eq(userWords.userId, userId),
-          eq(userWords.wordId, wordId)
-        )
-      );
+      .where(and(eq(userWords.userId, userId), eq(userWords.wordId, wordId)));
 
     if (existing.length === 0) {
       // レコードが存在しない場合は新規作成
@@ -47,12 +45,7 @@ export async function updateWordProgress(
       await db
         .update(userWords)
         .set({ complete: complete ? 1 : 0 })
-        .where(
-          and(
-            eq(userWords.userId, userId),
-            eq(userWords.wordId, wordId)
-          )
-        );
+        .where(and(eq(userWords.userId, userId), eq(userWords.wordId, wordId)));
     }
     return true;
   } catch (error) {
@@ -70,7 +63,7 @@ export async function updateWordProgress(
  * 検索文字列のエスケープ処理
  */
 const sanitizeSearchTerm = (term: string) => {
-  return term.replace(/[%_\\]/g, '\\$&');
+  return term.replace(/[%_\\]/g, "\\$&");
 };
 
 /**
@@ -122,15 +115,12 @@ export async function getUserWordProgress(
         .from(words)
         .leftJoin(
           userWords,
-          and(
-            eq(userWords.wordId, words.id),
-            eq(userWords.userId, userId)
-          )
+          and(eq(userWords.wordId, words.id), eq(userWords.userId, userId))
         )
         .where(searchCondition || undefined)
         .limit(pageSize)
         .offset(offset)
-        .orderBy(words.id);  // 一貫した順序を保証するためのソート
+        .orderBy(words.id); // 一貫した順序を保証するためのソート
 
       return { wordProgress, totalPages, page };
     });
@@ -138,14 +128,14 @@ export async function getUserWordProgress(
     return {
       words: result.wordProgress,
       totalPages: result.totalPages,
-      currentPage: result.page
+      currentPage: result.page,
     };
   } catch (error) {
     console.error("Failed to get user word progress:", error);
     return {
       words: [],
       totalPages: 0,
-      currentPage: 1
+      currentPage: 1,
     };
   }
 }
@@ -155,32 +145,22 @@ export async function getUserWordProgress(
  * @param userId ユーザーID
  * @returns 進捗の統計情報
  */
-export async function getUserProgressSummary(
-  userId: string
-): Promise<{
+export async function getUserProgressSummary(userId: string): Promise<{
   total: number;
   completed: number;
   percentage: number;
 }> {
   try {
     const [totalResult, completedResult] = await Promise.all([
-      db
-        .select({ total: sql`count(*)`.mapWith(Number) })
-        .from(words)
-        .then(rows => rows[0]),
+      totalJson.totalWords,
       db
         .select({ completed: sql`count(*)`.mapWith(Number) })
         .from(userWords)
-        .where(
-          and(
-            eq(userWords.userId, userId),
-            eq(userWords.complete, 1)
-          )
-        )
-        .then(rows => rows[0])
+        .where(and(eq(userWords.userId, userId), eq(userWords.complete, 1)))
+        .then((rows) => rows[0]),
     ]);
 
-    const total = totalResult?.total ?? 0;
+    const total = totalResult ?? 0;
     const completed = completedResult?.completed ?? 0;
 
     return {

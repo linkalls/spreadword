@@ -52,6 +52,11 @@ export async function PUT(
 }
 
 // 単語を削除
+// この削除操作により、以下の関連レコードも自動的に削除されます（cascade delete）：
+// - userWords: ユーザーと単語の関連
+// - learningHistory: 学習履歴
+// - quizResults: クイズ結果
+// - wordListItems: 単語リストの項目
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -70,6 +75,7 @@ export async function DELETE(
       .delete(words)
       .where(eq(words.id, id))
       .returning();
+
 
     if (deletedWord.length === 0) {
       return new NextResponse("Word not found", { status: 404 });

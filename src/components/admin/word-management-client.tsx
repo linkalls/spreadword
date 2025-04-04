@@ -18,7 +18,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronLeft, ChevronRight, Loader2, Plus, Search } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  Plus,
+  Search,
+  Wand2,
+} from "lucide-react";
 import { useEffect, useState, type ChangeEvent } from "react";
 import { toast } from "sonner";
 
@@ -62,6 +69,7 @@ export default function WordManagementClient() {
 
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [autoGenerating, setAutoGenerating] = useState(false);
 
   // 単語一覧を取得
   const fetchWords = async () => {
@@ -132,7 +140,7 @@ export default function WordManagementClient() {
         },
         body: JSON.stringify(newWord),
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || "単語の追加に失敗しました");
@@ -162,6 +170,61 @@ export default function WordManagementClient() {
     }
   };
 
+  // Geminiを使って単語を自動生成
+  const generateWordWithGemini = async () => {
+    const wordToGenerate = selectedWord?.word || newWord.word;
+    if (!wordToGenerate) {
+      toast.error("単語を入力してください");
+      return;
+    }
+
+    setAutoGenerating(true);
+    try {
+      const res = await fetch("/api/admin/words/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ word: wordToGenerate }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "単語の自動生成に失敗しました");
+      }
+
+      const data = await res.json();
+
+      if (selectedWord) {
+        setSelectedWord({
+          ...selectedWord,
+          meanings: data.meanings,
+          part_of_speech: data.part_of_speech,
+          choices: data.choices,
+          ex: data.ex,
+        });
+      } else {
+        setNewWord({
+          ...newWord,
+          meanings: data.meanings,
+          part_of_speech: data.part_of_speech,
+          choices: data.choices,
+          ex: data.ex,
+        });
+      }
+      toast.success("単語情報を自動生成しました");
+    } catch (error) {
+      console.error("Error generating word:", error);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("単語の自動生成に失敗しました");
+      }
+    } finally {
+      setAutoGenerating(false);
+    }
+  };
+
   // 単語を更新
   const updateWord = async () => {
     if (!selectedWord) return;
@@ -174,7 +237,7 @@ export default function WordManagementClient() {
         },
         body: JSON.stringify(selectedWord),
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || "単語の更新に失敗しました");
@@ -203,7 +266,7 @@ export default function WordManagementClient() {
       const res = await fetch(`/api/admin/words/${id}`, {
         method: "DELETE",
       });
-      
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || "単語の削除に失敗しました");
@@ -349,13 +412,28 @@ export default function WordManagementClient() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="word">単語</Label>
-              <Input
-                id="word"
-                value={newWord.word}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  setNewWord({ ...newWord, word: e.target.value })
-                }
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="word"
+                  value={newWord.word}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    setNewWord({ ...newWord, word: e.target.value })
+                  }
+                  required
+                />
+                <Button
+                  variant="secondary"
+                  onClick={generateWordWithGemini}
+                  disabled={autoGenerating}
+                >
+                  {autoGenerating ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Wand2 className="h-4 w-4 mr-2" />
+                  )}
+                  AIで生成
+                </Button>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="meanings">意味</Label>
@@ -365,6 +443,7 @@ export default function WordManagementClient() {
                 onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
                   setNewWord({ ...newWord, meanings: e.target.value })
                 }
+                required
               />
             </div>
             <div className="space-y-2">
@@ -375,6 +454,7 @@ export default function WordManagementClient() {
                 onChange={(e: ChangeEvent<HTMLInputElement>) =>
                   setNewWord({ ...newWord, part_of_speech: e.target.value })
                 }
+                required
               />
             </div>
             <div className="space-y-2">
@@ -385,6 +465,7 @@ export default function WordManagementClient() {
                 onChange={(e: ChangeEvent<HTMLInputElement>) =>
                   setNewWord({ ...newWord, choices: e.target.value })
                 }
+                required
               />
             </div>
             <div className="space-y-2">
@@ -395,6 +476,7 @@ export default function WordManagementClient() {
                 onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
                   setNewWord({ ...newWord, ex: e.target.value })
                 }
+                required
               />
             </div>
             <div className="flex justify-end gap-2">
@@ -423,13 +505,40 @@ export default function WordManagementClient() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-word">単語</Label>
-                <Input
-                  id="edit-word"
-                  value={selectedWord.word}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                    setSelectedWord({ ...selectedWord, word: e.target.value })
-                  }
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="edit-word"
+                    value={selectedWord.word}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                      setSelectedWord({ ...selectedWord, word: e.target.value })
+                    }
+                    required
+                  />
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      generateWordWithGemini().then(() => {
+                        if (selectedWord) {
+                          setSelectedWord({
+                            ...selectedWord,
+                            meanings: newWord.meanings,
+                            part_of_speech: newWord.part_of_speech,
+                            choices: newWord.choices,
+                            ex: newWord.ex,
+                          });
+                        }
+                      });
+                    }}
+                    disabled={autoGenerating}
+                  >
+                    {autoGenerating ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <Wand2 className="h-4 w-4 mr-2" />
+                    )}
+                    AIで生成
+                  </Button>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-meanings">意味</Label>
@@ -442,6 +551,7 @@ export default function WordManagementClient() {
                       meanings: e.target.value,
                     })
                   }
+                  required
                 />
               </div>
               <div className="space-y-2">
@@ -455,6 +565,7 @@ export default function WordManagementClient() {
                       part_of_speech: e.target.value,
                     })
                   }
+                  required
                 />
               </div>
               <div className="space-y-2">
@@ -468,6 +579,7 @@ export default function WordManagementClient() {
                       choices: e.target.value,
                     })
                   }
+                  required
                 />
               </div>
               <div className="space-y-2">
@@ -478,6 +590,7 @@ export default function WordManagementClient() {
                   onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
                     setSelectedWord({ ...selectedWord, ex: e.target.value })
                   }
+                  required
                 />
               </div>
               <div className="flex justify-end gap-2">
