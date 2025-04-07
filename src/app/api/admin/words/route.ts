@@ -23,9 +23,9 @@ const PAGE_SIZE = 20;
 const WordSchema = z.object({
   word: z.string().min(1).max(100),
   meanings: z.string().min(1),
-  part_of_speech: z.string().nullable(),
-  choices: z.string().nullable(),
-  ex: z.string().nullable(),
+  part_of_speech: z.string(),
+  choices: z.array(z.string()),
+  ex: z.string(),
 });
 
 const BatchWordsSchema = z.object({
@@ -129,6 +129,8 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
+    console.log("Request body:", body);
+    console.log("Choices after join:", body.choices);
 
     // 単一の単語追加か複数の単語追加かを判定
     const isBatchOperation = Array.isArray(body.words);
@@ -147,9 +149,15 @@ export async function POST(req: Request) {
       const newWords = await db.transaction(async (tx) => {
         const insertedWords = [];
         for (const wordData of validationResult.data.words) {
+          // choices配列をJSON文字列に変換
+          const processedWordData = {
+            ...wordData,
+            choices: JSON.stringify(wordData.choices)
+          };
+
           const [newWord] = await tx
             .insert(words)
-            .values(wordData)
+            .values(processedWordData)
             .returning();
           insertedWords.push(newWord);
         }
@@ -169,10 +177,15 @@ export async function POST(req: Request) {
           { status: 400 }
         );
       }
+      // choices配列をJSON文字列に変換
+      const wordData = {
+        ...validationResult.data,
+        choices: JSON.stringify(validationResult.data.choices)
+      };
 
       const [newWord] = await db
         .insert(words)
-        .values(validationResult.data)
+        .values(wordData)
         .returning();
 
       return NextResponse.json({

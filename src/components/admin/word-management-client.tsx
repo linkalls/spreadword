@@ -35,7 +35,7 @@ interface Word {
   word: string;
   meanings: string;
   part_of_speech?: string;
-  choices?: string;
+  choices?: string[] | string;
   ex?: string;
 }
 
@@ -63,7 +63,7 @@ export default function WordManagementClient() {
     word: "",
     meanings: "",
     part_of_speech: "",
-    choices: "",
+    choices: "" as string | string[],
     ex: "",
   });
 
@@ -133,6 +133,9 @@ export default function WordManagementClient() {
   // 単語を追加
   const addWord = async () => {
     try {
+      if ( typeof newWord.choices === "string") {
+      newWord.choices = newWord.choices.split(",")
+      }
       const res = await fetch("/api/admin/words", {
         method: "POST",
         headers: {
@@ -194,6 +197,7 @@ export default function WordManagementClient() {
       }
 
       const data = await res.json();
+      console.log(data)
 
       if (selectedWord) {
         setSelectedWord({
@@ -572,11 +576,11 @@ export default function WordManagementClient() {
                 <Label htmlFor="edit-choices">選択肢（カンマ区切り）</Label>
                 <Input
                   id="edit-choices"
-                  value={selectedWord.choices || ""}
+                  value={Array.isArray(selectedWord.choices) ? selectedWord.choices.join(", ") : ""}
                   onChange={(e: ChangeEvent<HTMLInputElement>) =>
                     setSelectedWord({
                       ...selectedWord,
-                      choices: e.target.value,
+                      choices: e.target.value.split(/,\s*/).filter(Boolean)
                     })
                   }
                   required

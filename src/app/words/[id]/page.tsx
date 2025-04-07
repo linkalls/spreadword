@@ -41,6 +41,8 @@ export default async function WordDetailPage({
           meanings: word[0].meanings,
           mistakeCount: 0, // ここは後でスキーマを更新して対応
           lastMistakeDate: new Date(), // ここは後でスキーマを更新して対応
+          ex: word[0].ex,
+          partOfSpeech: word[0].part_of_speech,
         }}
       />
     </div>

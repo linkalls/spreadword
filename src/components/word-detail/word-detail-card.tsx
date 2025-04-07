@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { WordSpeech } from './word-speech';
-import { BookmarkIcon } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BookmarkIcon } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { WordSpeech } from "./word-speech";
 
 // 単語の詳細情報の型定義
 interface WordDetail {
   id: number;
   word: string;
   meaning: string;
+  partOfSpeech: string;
   mistakeCount: number;
   lastMistakeDate: Date | null;
   generatedText?: {
@@ -17,6 +18,7 @@ interface WordDetail {
   };
   bookmarked?: number;
   notes?: string;
+  ex: string;
 }
 
 interface WordDetailCardProps {
@@ -54,7 +56,7 @@ export const WordDetailCard: React.FC<WordDetailCardProps> = ({
         },
         body: JSON.stringify({
           wordId: wordDetail.id,
-          bookmarked: !isBookmarked
+          bookmarked: !isBookmarked,
         }),
       });
 
@@ -81,7 +83,7 @@ export const WordDetailCard: React.FC<WordDetailCardProps> = ({
       });
 
       if (!response.ok) throw new Error("Failed to save note");
-      
+
       // ノートの状態に応じてブックマーク状態を更新
       setIsBookmarked(!!trimmedNotes);
     } catch (error) {
@@ -96,7 +98,9 @@ export const WordDetailCard: React.FC<WordDetailCardProps> = ({
       <CardHeader>
         <div className="flex items-center gap-4 justify-between">
           <div className="flex items-center gap-2">
-            <CardTitle className="text-2xl font-bold">{wordDetail.word}</CardTitle>
+            <CardTitle className="text-2xl font-bold">
+              {wordDetail.word}
+            </CardTitle>
             <WordSpeech word={wordDetail.word} />
           </div>
           <Button
@@ -105,11 +109,15 @@ export const WordDetailCard: React.FC<WordDetailCardProps> = ({
             onClick={handleBookmark}
             className="min-w-[120px]"
           >
-            <BookmarkIcon className={`h-4 w-4 mr-2 ${isBookmarked ? "fill-current" : ""}`} />
+            <BookmarkIcon
+              className={`h-4 w-4 mr-2 ${isBookmarked ? "fill-current" : ""}`}
+            />
             {isBookmarked ? "ブックマーク解除" : "ブックマーク"}
           </Button>
         </div>
         <p className="text-gray-600">{wordDetail.meaning}</p>
+        <p className="text-blue-400">{wordDetail.partOfSpeech}</p>
+
       </CardHeader>
       <CardContent>
         {/* 間違えた回数と最後に間違えた日付の表示 */}
@@ -118,8 +126,15 @@ export const WordDetailCard: React.FC<WordDetailCardProps> = ({
             間違えた回数: {wordDetail.mistakeCount}回
           </p>
           <p className="text-sm text-gray-500">
-            最後に間違えた日: {wordDetail.lastMistakeDate?.toLocaleDateString() ?? "なし"}
+            最後に間違えた日:{" "}
+            {wordDetail.lastMistakeDate?.toLocaleDateString() ?? "なし"}
           </p>
+        </div>
+
+        {/* 例文 */}
+        <div className="mb-4">
+          <h3 className="font-semibold text-lg">例文</h3>
+          <p className="text-gray-600 whitespace-pre-line">{wordDetail.ex}</p>
         </div>
 
         {/* ノート入力フィールド */}
@@ -149,7 +164,7 @@ export const WordDetailCard: React.FC<WordDetailCardProps> = ({
             disabled={isGenerating}
             className="w-full"
           >
-            {isGenerating ? '例文を生成中...' : '新しい例文を生成'}
+            {isGenerating ? "例文を生成中..." : "新しい例文を生成"}
           </Button>
         </div>
 
@@ -159,12 +174,20 @@ export const WordDetailCard: React.FC<WordDetailCardProps> = ({
             <h3 className="font-semibold text-lg">生成されたストーリー</h3>
             <div className="p-4 bg-gray-50 rounded-lg">
               <div className="mb-4">
-                <h4 className="text-sm font-semibold text-gray-600 mb-2">English</h4>
-                <p className="text-blue-600 whitespace-pre-line">{wordDetail.generatedText.English}</p>
+                <h4 className="text-sm font-semibold text-gray-600 mb-2">
+                  English
+                </h4>
+                <p className="text-blue-600 whitespace-pre-line">
+                  {wordDetail.generatedText.English}
+                </p>
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-gray-600 mb-2">Japanese</h4>
-                <p className="text-gray-600 whitespace-pre-line">{wordDetail.generatedText.Japanese}</p>
+                <h4 className="text-sm font-semibold text-gray-600 mb-2">
+                  Japanese
+                </h4>
+                <p className="text-gray-600 whitespace-pre-line">
+                  {wordDetail.generatedText.Japanese}
+                </p>
               </div>
             </div>
           </div>

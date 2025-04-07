@@ -12,6 +12,8 @@ interface ClientWordDetailProps {
     lastMistakeDate?: Date | null;
     bookmarked?: number;
     notes?: string;
+    ex: string;
+    partOfSpeech: string;
   };
 }
 
@@ -77,6 +79,8 @@ export function ClientWordDetail({ initialWord }: ClientWordDetailProps) {
         lastMistakeDate: initialWord.lastMistakeDate ?? null,
         bookmarked: initialWord.bookmarked,
         notes: initialWord.notes,
+        ex: initialWord.ex,
+        partOfSpeech: initialWord.partOfSpeech,
         generatedText,
       }}
       onGenerateExample={handleGenerateExample}

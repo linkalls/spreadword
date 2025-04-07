@@ -25,11 +25,17 @@ export async function POST(request: Request) {
     const prompt = `
       英単語「${word}」について以下の情報を日本語で提供してください。以下のJSONフォーマットで返答してください（Markdownなどの記法は使用しないでください）：
       {
-        "meanings": "日本語での意味（複数ある場合は最もよく使われる1つを）",
+        "meanings": "日本語での意味（複数ある場合は最もよく使われる1つだけを記載。カンマは使用しない）",
         "part_of_speech": "品詞（名詞、動詞、形容詞など）最もよく使われるもの1つ",
-        "choices": "クイズ用の誤った選択肢を3つとmeaningsであげた物を一つ（カンマ区切り）",
+        "choices": ["誤答1", "誤答2", "誤答3", "正解の日本語意味"],
         "ex": "例文（英語）"
       }
+      
+      注意事項：
+      - choicesは必ず配列形式で返してください
+      - choices内の4つの選択肢はランダムな順序で配置してください
+      - 選択肢はカンマで区切られた配列として返してください
+      - 各選択肢内でカンマを使用しないでください
     `;
 
     try {
@@ -38,10 +44,26 @@ export async function POST(request: Request) {
       let text = response.text();
 
       // Markdownのコードブロック記法を取り除く
-      text = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+      text = text
+        .replace(/```json\n?/g, "")
+        .replace(/```\n?/g, "")
+        .trim();
+
 
       try {
         const data = JSON.parse(text);
+        // choices が文字列の場合は配列に変換
+        if (data.choices && typeof data.choices === "string") {
+          try {
+            // 文字列からJSONパースを試みる
+            data.choices = JSON.parse(data.choices.replace(/'/g, '"'));
+          } catch (e) {
+            // カンマで分割する
+            console.error("Error parsing choices:", e);
+            data.choices = data.choices.split(/,\s*/);
+          }
+        }
+        console.log("AI response:", data);
         return NextResponse.json(data);
       } catch (parseError) {
         console.error("Error parsing AI response:", text);

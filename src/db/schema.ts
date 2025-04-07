@@ -307,9 +307,9 @@ export const words = sqliteTable("word", {
   id: integer("id").notNull().primaryKey({ autoIncrement: true }), // 単語のユニークID（自動採番）
   word: text("word").notNull().unique(), // 単語そのもの（重複不可）
   meanings: text("meanings").notNull(), // 単語の意味
-  part_of_speech: text("part_of_speech"), // 品詞（名詞、動詞など）
-  choices: text("choices"), // 選択肢（クイズ用）
-  ex: text("ex"), // 例文
+  part_of_speech: text("part_of_speech").notNull(), // 品詞（名詞、動詞など）
+  choices: text("choices").notNull(), // 選択肢（クイズ用）
+  ex: text("ex").notNull(), // 例文
 });
 
 /**
