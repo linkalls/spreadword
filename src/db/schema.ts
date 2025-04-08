@@ -17,6 +17,7 @@ export type GroupMember = InferSelectModel<typeof groupMembers>;
 export type Achievement = InferSelectModel<typeof achievements>;
 export type UserAchievement = InferSelectModel<typeof userAchievements>;
 export type RankingHistory = InferSelectModel<typeof rankingHistory>;
+export type UserSubmittedWord = InferSelectModel<typeof userSubmittedWords>;
 export type WordList = InferSelectModel<typeof wordLists>;
 export type WordListItem = InferSelectModel<typeof wordListItems>;
 // テーブルの型定義に追加
@@ -474,6 +475,39 @@ export const wordsRelations = relations(words, ({ many }) => ({
   users: many(userWords),
   learningHistory: many(learningHistory),
   quizResults: many(quizResults),
+}));
+
+/**
+ * ユーザーから投稿された単語のテーブル
+ * 管理者の承認後にwordsテーブルに移動される
+ */
+export const userSubmittedWords = sqliteTable("user_submitted_words", {
+  id: integer("id").notNull().primaryKey({ autoIncrement: true }),
+  word: text("word").notNull(),
+  meanings: text("meanings").notNull(),
+  part_of_speech: text("part_of_speech"),
+  ex: text("ex").notNull(),
+  choices: text("choices").notNull(), // 管理者が後で設定
+  submitted_by: text("submitted_by")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  status: text("status")
+    .$type<"pending" | "approved" | "rejected">()
+    .notNull()
+    .default("pending"),
+  admin_feedback: text("admin_feedback"),
+  submitted_at: integer("submitted_at", { mode: "timestamp_ms" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  approved_at: integer("approved_at", { mode: "timestamp_ms" }),
+});
+
+// ユーザー投稿単語のリレーション
+export const userSubmittedWordsRelations = relations(userSubmittedWords, ({ one }) => ({
+  user: one(users, {
+    fields: [userSubmittedWords.submitted_by],
+    references: [users.id],
+  }),
 }));
 
 export const learningHistoryRelations = relations(

@@ -27,7 +27,7 @@ export default async function AdminPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">管理者ページ</h1>
 
       {/* 各セクションへのリンク */}
@@ -46,6 +46,14 @@ export default async function AdminPage() {
         >
           <h2 className="text-xl font-semibold mb-2">単語管理</h2>
           <p className="text-gray-600">単語の追加、編集、削除を行います</p>
+        </a>
+
+        <a
+          href="/admin/words/submissions"
+          className="p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+        >
+          <h2 className="text-xl font-semibold mb-2">投稿管理</h2>
+          <p className="text-gray-600">ユーザーからの単語投稿を承認・却下します</p>
         </a>
       </div>
     </div>
