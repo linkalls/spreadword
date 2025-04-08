@@ -118,13 +118,17 @@ export function WordListDetailClient({ list, words, isOwner }: Props) {
         </div>
 
         {isOwner && (
-          <div className="flex gap-2">
-            <div className="flex gap-2 items-center">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex flex-wrap gap-2 items-center">
               {showCopiedMessage && (
                 <span className="text-sm text-green-600">コピーしました！</span>
               )}
               {list.isPublic && (
-                <Button variant="outline" onClick={handleShare}>
+                <Button
+                  variant="outline"
+                  onClick={handleShare}
+                  className="w-full sm:w-auto"
+                >
                   シェア
                 </Button>
               )}
@@ -140,6 +144,7 @@ export function WordListDetailClient({ list, words, isOwner }: Props) {
               <Button
                 variant="outline"
                 onClick={() => setIsEditDialogOpen(true)}
+                className="w-full sm:w-auto"
               >
                 編集
               </Button>
@@ -148,6 +153,7 @@ export function WordListDetailClient({ list, words, isOwner }: Props) {
               variant="destructive"
               onClick={handleDeleteList}
               disabled={isDeleting}
+              className="w-full sm:w-auto"
             >
               {isDeleting ? "削除中..." : "削除"}
             </Button>
@@ -193,34 +199,39 @@ export function WordListDetailClient({ list, words, isOwner }: Props) {
               </div>
             </form>
           </div>
-          <div className="flex gap-2">
-            <h2 className="text-lg sm:text-xl font-semibold">
+          <div className="w-full sm:w-auto">
+            <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-0">
               登録単語 ({filteredWords.length})
             </h2>
-            {words.length > 0 && (
-              <>
-                <Button
-                  variant="default"
-                  onClick={() => router.push(`/quiz?list=${list.id}`)}
-                >
-                  クイズを開始
-                </Button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              {words.length > 0 && (
+                <>
+                  <Button
+                    variant="default"
+                    onClick={() => router.push(`/quiz?list=${list.id}`)}
+                    className="w-full sm:w-auto"
+                  >
+                    クイズを開始
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowFlashCards(!showFlashCards)}
+                    className="w-full sm:w-auto"
+                  >
+                    {showFlashCards ? "リストに戻る" : "フラッシュカード"}
+                  </Button>
+                </>
+              )}
+              {isOwner && (
                 <Button
                   variant="outline"
-                  onClick={() => setShowFlashCards(!showFlashCards)}
+                  onClick={() => setIsAddWordsDialogOpen(true)}
+                  className="w-full sm:w-auto"
                 >
-                  {showFlashCards ? "リストに戻る" : "フラッシュカード"}
+                  単語を追加
                 </Button>
-              </>
-            )}
-            {isOwner && (
-              <Button
-                variant="outline"
-                onClick={() => setIsAddWordsDialogOpen(true)}
-              >
-                単語を追加
-              </Button>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
