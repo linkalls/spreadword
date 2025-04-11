@@ -1,7 +1,7 @@
-import { eq, and } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "../dbclient";
-import { wordLists, wordListItems, words, userWords } from "../schema";
-import type { WordList, Word } from "../schema";
+import type { Word, WordList } from "../schema";
+import { userWords, wordListItems, wordLists, words } from "../schema";
 
 /**
  * 単語リストを作成する
@@ -90,7 +90,7 @@ export async function updateWordList({
   if (!list) return null;
 
   const newIsPublic = isPublic !== undefined ? isPublic : list.isPublic === 1;
-  const shareId = newIsPublic 
+  const shareId = newIsPublic
     ? list.shareId || crypto.randomUUID() // 公開時にshareIdがなければ生成
     : null; // 非公開時はshareIdを削除
 
@@ -197,7 +197,10 @@ export async function removeWordFromList({
 /**
  * リストに含まれる単語一覧を取得する
  */
-export async function getWordsInList(listId: string, userId?: string): Promise<
+export async function getWordsInList(
+  listId: string,
+  userId?: string
+): Promise<
   Array<
     Word & {
       notes?: string | null;
@@ -228,9 +231,9 @@ export async function getWordsInList(listId: string, userId?: string): Promise<
       .where(eq(wordListItems.listId, listId))
       .orderBy(wordListItems.addedAt);
 
-    return items.map(item => ({
+    return items.map((item) => ({
       ...item,
-      progress: undefined
+      progress: undefined,
     }));
   }
 
@@ -253,15 +256,12 @@ export async function getWordsInList(listId: string, userId?: string): Promise<
     .innerJoin(words, eq(wordListItems.wordId, words.id))
     .leftJoin(
       userWords,
-      and(
-        eq(userWords.wordId, words.id),
-        eq(userWords.userId, userId)
-      )
+      and(eq(userWords.wordId, words.id), eq(userWords.userId, userId))
     )
     .where(eq(wordListItems.listId, listId))
     .orderBy(wordListItems.addedAt);
 
-  return items.map(item => ({
+  return items.map((item) => ({
     id: item.id,
     word: item.word,
     meanings: item.meanings,
@@ -274,6 +274,55 @@ export async function getWordsInList(listId: string, userId?: string): Promise<
       complete: item.complete ?? 0,
       mistakeCount: item.mistakeCount ?? 0,
       lastMistakeDate: item.lastMistakeDate ?? "",
-    }
+    },
   }));
+}
+
+/**
+ * 単語リストをフォークする
+ */
+export async function forkWordList({
+  sourceListId,
+  userId,
+  name,
+  description,
+}: {
+  sourceListId: string;
+  userId: string;
+  name: string;
+  description?: string;
+}): Promise<WordList> {
+  // まず新しいリストを作成
+  const [forkedList] = await db
+    .insert(wordLists)
+    .values({
+      userId,
+      name,
+      description,
+      isPublic: 0,
+      shareId: null,
+    })
+    .returning();
+
+  // 元のリストの単語をコピー
+  const sourceItems = await db
+    .select({
+      wordId: wordListItems.wordId,
+      notes: wordListItems.notes,
+    })
+    .from(wordListItems)
+    .where(eq(wordListItems.listId, sourceListId));
+
+  // 新しいリストに単語を追加
+  if (sourceItems.length > 0) {
+    await db.insert(wordListItems).values(
+      sourceItems.map((item) => ({
+        listId: forkedList.id,
+        wordId: item.wordId,
+        notes: item.notes,
+      }))
+    );
+  }
+
+  return forkedList;
 }
